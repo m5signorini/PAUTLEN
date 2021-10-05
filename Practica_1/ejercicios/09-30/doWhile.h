@@ -6,6 +6,9 @@
 #define ENTERO 0
 #define BOOLEANO 1
 
+/* Longitud máxima del nombre de una variable */
+#define MAX_VARNAME_LENGTH 4095
+
 /* OBSERVACIÓN GENERAL A TODAS LAS FUNCIONES:
 Todas ellas escriben el código NASM a un FILE* proporcionado como primer
 argumento.

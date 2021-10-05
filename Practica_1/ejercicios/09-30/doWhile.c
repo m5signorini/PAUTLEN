@@ -1,14 +1,16 @@
 #include <stdlib.h>
 #include <string.h>
-#include "generacion.h"
+#include "doWhile.h"
 
+/*
 int getiqueta = -1;
 int cima_etiquetas = -1;
 int etiquetas[MAX_ETIQUETAS];
+*/
 
 void escribir_cabecera_bss(FILE* fpasm){
   if (fpasm == NULL) return;
-  fprintf(fpasm, ".segment bss\n");
+  fprintf(fpasm, "segment .bss\n");
   fprintf(fpasm, "  __esp resd 1\n");
 
   return;
@@ -16,6 +18,9 @@ void escribir_cabecera_bss(FILE* fpasm){
 
 void escribir_subseccion_data(FILE* fpasm) {
   if (fpasm == NULL) return;
+
+  fprintf(fpasm, "segment .data\n");
+
   fprintf(fpasm, "_div_error db \"Error: division por cero\"\n");
   /* completar con futuros mensajes de error que surjan */
   return;
@@ -32,10 +37,12 @@ vectores, por eso se adjunta un argumento final (tamano) que para esta
 primera práctica siempre recibirá el valor 1.
 */
 void declarar_variable(FILE* fpasm, char * nombre, int tipo, int tamano){
-  char* new_name = "_";
+  char new_name[MAX_VARNAME_LENGTH] = "_";
 
   if (fpasm == NULL) return;
+  
   strcat(new_name, nombre);
+  
   fprintf(fpasm, "%s resd %d\n",new_name, tamano);
   return;
 }
@@ -79,7 +86,7 @@ void escribir_fin(FILE* fpasm) {
 }
 
 void escribir_operando(FILE* fpasm, char* nombre, int es_variable) {
-  if(pasm == NULL) return;
+  if(fpasm == NULL) return;
   // Si es variable, lo obtenemos a partir del nombre
   if(es_variable == 1) {
     fprintf(fpasm, "push dword [_%s]\n", nombre);
@@ -167,9 +174,9 @@ void dowhile_exp_pila (FILE * fpasm, int exp_es_variable, int etiqueta){
   fprintf(fpasm, "cmp eax, 0\n");
   fprintf(fpasm, "jne do_while_%d\n", etiqueta);
 
-  fprintf(fpasm, "jmp fin_do_while_%d:\n", etiqueta);
+  fprintf(fpasm, "jmp fin_do_while_%d\n", etiqueta);
 
-  return
+  return;
 }
 
 
@@ -189,7 +196,11 @@ void dowhile_fin( FILE * fpasm, int etiqueta) {
 una referencia (1) o ya un valor explícito (0).
 */
 void asignar(FILE* fpasm, char* nombre, int es_variable){
+  char new_name[MAX_VARNAME_LENGTH] = "_";
+
   if (fpasm == NULL) return;
+  
+  strcat(new_name, nombre);
 
   fprintf(fpasm, "; obtenemos cima de la pila\n");
   fprintf(fpasm, "pop dword edx\n");
@@ -198,7 +209,7 @@ void asignar(FILE* fpasm, char* nombre, int es_variable){
     fprintf(fpasm, "mov dword edx, [edx]\n");
   }
 
-  fprintf(fpasm, "mov dword [%s], edx\n", nombre);
+  fprintf(fpasm, "mov dword [%s], edx\n", new_name);
 
   return;
 }
@@ -216,16 +227,26 @@ void menor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta) {
 
   fprintf(fpasm, "; cargar el segundo operando en edx\n");
   fprintf(fpasm, "pop dword edx\n");
-  if (es_variable_2 == 1){
+  if (es_variable2 == 1){
     fprintf(fpasm, "mov dword edx, [edx]\n");
   }
 
   fprintf(fpasm, "; cargar el primer operando en eax\n");
   fprintf(fpasm,"pop dword eax\n");
-  if (es_variable_1 == 1){
+  if (es_variable1 == 1){
     fprintf(fpasm, "mov dword eax, [eax]\n");
   }
 
   fprintf(fpasm, "cmp eax, edx\n");
-  fprintf(fpasm, "push dword cf\n");
+  fprintf(fpasm, "jl menor_%d\n", etiqueta);
+  
+  fprintf(fpasm, "; si no se cumple la comparacion\n");
+  fprintf(fpasm, "push dword 0\n");
+  fprintf(fpasm, "jmp fin_menor_%d\n", etiqueta);
+
+  fprintf(fpasm, "; si se cumple la comparacion\n");
+  fprintf(fpasm, "menor_%d:\n", etiqueta);
+  fprintf(fpasm, "push dword 1\n");
+  
+  fprintf(fpasm, "fin_menor_%d:", etiqueta);
 }
