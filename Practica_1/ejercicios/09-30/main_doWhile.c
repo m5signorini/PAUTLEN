@@ -13,23 +13,23 @@ int main(int argc, char **argv) {
   }
 
   salida = fopen(argv[1], "w");
-  
-  
+
+
 
   int etiqueta = 0;
 
   escribir_subseccion_data(salida);
 
   escribir_cabecera_bss(salida);
-  
+
   declarar_variable(salida, "x", ENTERO, 1);
-  
+
   declarar_variable(salida, "y", ENTERO, 1);
-  
+
   escribir_segmento_codigo(salida);
 
   escribir_inicio_main(salida);
-  
+
   /* x=0; */
 
   escribir_operando(salida, "0", 0);
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 
   /* y=2; */
 
-  escribir_operando(salida, "0", 0);
+  escribir_operando(salida, "2", 0);
 
   asignar(salida, "y", 0);
 
@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
   escribir(salida, 1, ENTERO);
 
   escribir_operando(salida, "x", 1);
+
+  escribir_operando(salida, "10", 0);
 
   menor(salida, 1, 0, etiqueta);
 
