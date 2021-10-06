@@ -48,6 +48,7 @@ do_while_1:
   push dword [edx]
   call print_int
   add esp, 4
+  call print_endofline
   push dword _x
   mov edx, 10
   push dword edx

@@ -122,6 +122,8 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
   /* restaura el puntero de pila */
   fprintf(fpasm, "  add esp, 4\n");
 
+  fprintf(fpasm, "  call print_endofline\n");
+
   return;
 }
 
