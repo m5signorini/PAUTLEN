@@ -86,7 +86,7 @@ void escribir_fin(FILE* fpasm) {
   // Recuperar puntero de pila a partir de __esp
   fprintf(fpasm, "\n");
   fprintf(fpasm, "fin:\n");
-  fprintf(fpasm, "  mov [__esp], esp\n");
+  fprintf(fpasm, "  mov esp, [__esp]\n");
   fprintf(fpasm, "  ret\n");                    // Escribir ret final
   return;
 }
