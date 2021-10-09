@@ -72,7 +72,7 @@ void escribir_fin(FILE* fpasm) {
   fprintf(fpasm, "  jmp near fin\n");
 
   /* Índice fuera de rango: fin_indice_fuera_rango */
-  fprintf(fpasm, "fin_indice_fuera_rango\n");
+  fprintf(fpasm, "fin_indice_fuera_rango:\n");
   fprintf(fpasm, " push dword msg_index_range_error\n"); //Guardamos direccion del mensaje a imprimir
   fprintf(fpasm, "  call print_string\n");
   fprintf(fpasm, "  add esp, 4\n");             // Restauramos valor de esp antes de añadir el mensaje
@@ -302,7 +302,7 @@ void no(FILE* fpasm, int es_variable, int cuantos_no){
   fprintf(fpasm, "  je no_%d\n", cuantos_no);
   fprintf(fpasm, "; si es un 1 ponemos un 0\n");
   fprintf(fpasm, "  mov eax, 0\n");
-  fprintf(fpasm, "  je fin_no_%d\n", cuantos_no);
+  fprintf(fpasm, "  jmp fin_no_%d\n", cuantos_no);
   fprintf(fpasm, "\n");
   fprintf(fpasm, "no_%d:\n", cuantos_no);
   fprintf(fpasm, "; si es un 0 ponemos un 1\n");
@@ -618,8 +618,7 @@ void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta){
   return;
 }
 
-void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);
-{
+void ifthen_inicio(FILE * fpasm, int exp_es_variable, int etiqueta){
   if (fpasm == NULL) return;
 
   fprintf(fpasm, "; obtenemos el valor de la expresion del if\n");
@@ -749,7 +748,7 @@ void escribirVariableLocal(FILE* fpasm, int posicion_variable_local) {
   d_ebp = 4*posicion_variable_local;
 
   fprintf(fpasm, "  lea eax, [ebp - %d]\n", d_ebp);
-  fprintf(fpasm, "  push dword eax")
+  fprintf(fpasm, "  push dword eax");
 
   return;
 }
@@ -765,4 +764,33 @@ void asignarDestinoEnPila(FILE* fpasm, int es_variable) {
   }
   /* Realiza la asignación */
   fprintf(fpasm, "mov dword [ebx], eax\n");
+}
+
+void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
+    if (fd_asm == NULL) return;
+
+    if (es_variable == 1){
+      fprintf(fd_asm, "pop dword eax\n");
+      fprintf(fd_asm, "mov dword eax, [eax]\n");
+      fprintf(fd_asm, "push dword eax\n");
+    }
+
+    return;
+}
+
+void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
+  if (fd_asm == NULL) return;
+
+  fprintf(fd_asm, "call %s\n", nombre_funcion);
+  limpiarPila(fd_asm, num_argumentos);
+  fprintf(fd_asm, "push dword eax\n");
+
+  return;
+}
+
+void limpiarPila(FILE * fd_asm, int num_argumentos){
+  if (fd_asm == NULL) return;
+
+  fprintf(fd_asm, "add esp, %d\n", num_argumentos*4);
+  return;
 }
