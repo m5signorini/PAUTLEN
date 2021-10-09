@@ -25,8 +25,8 @@ void escribir_subseccion_data(FILE* fpasm) {
   if (fpasm == NULL) return;
   fprintf(fpasm, "\n");
   fprintf(fpasm, "segment .data\n");
-  fprintf(fpasm, "  msg_div_error db \"Error: division por cero\"\n");
-  fprintf(fpasm, "  msg_index_range_error db \"Error: Indice fuera de rango\"\n");
+  fprintf(fpasm, "  _msg_div_error db \"Error: division por cero\", 0\n");
+  fprintf(fpasm, "  _msg_index_range_error db \"Error: Indice fuera de rango\", 0\n");
   /* completar con futuros mensajes de error que surjan */
   return;
 }
@@ -65,15 +65,16 @@ void escribir_fin(FILE* fpasm) {
   fprintf(fpasm, "\n");
   /* DIVISION POR CERO : error_div_cero */
   fprintf(fpasm, "error_div_cero:\n");
-  fprintf(fpasm, "  push dword msg_div_error\n");  // Guardamos direccion del mensaje a imprimir
+  fprintf(fpasm, "  push dword _msg_div_error\n");  // Guardamos direccion del mensaje a imprimir
   fprintf(fpasm, "  call print_string\n");
   fprintf(fpasm, "  add esp, 4\n");             // Restauramos valor de esp antes de añadir el mensaje
   fprintf(fpasm, "  call print_endofline\n");
   fprintf(fpasm, "  jmp near fin\n");
 
   /* Índice fuera de rango: fin_indice_fuera_rango */
+  fprintf(fpasm, "\n");
   fprintf(fpasm, "fin_indice_fuera_rango:\n");
-  fprintf(fpasm, " push dword msg_index_range_error\n"); //Guardamos direccion del mensaje a imprimir
+  fprintf(fpasm, "  push dword _msg_index_range_error\n"); //Guardamos direccion del mensaje a imprimir
   fprintf(fpasm, "  call print_string\n");
   fprintf(fpasm, "  add esp, 4\n");             // Restauramos valor de esp antes de añadir el mensaje
   fprintf(fpasm, "  call print_endofline\n");
@@ -346,7 +347,7 @@ void menor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta) {
   fprintf(fpasm, "  push dword 1\n");
 
   fprintf(fpasm, "\n");
-  fprintf(fpasm, "fin_menor_%d:", etiqueta);
+  fprintf(fpasm, "fin_menor_%d:\n", etiqueta);
   return;
 }
 
@@ -379,7 +380,7 @@ void igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta) {
   fprintf(fpasm, "  push dword 1\n");
 
   fprintf(fpasm, "\n");
-  fprintf(fpasm, "fin_igual_%d:", etiqueta);
+  fprintf(fpasm, "fin_igual_%d:\n", etiqueta);
   return;
 }
 
@@ -412,7 +413,7 @@ void distinto(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta) {
   fprintf(fpasm, "  push dword 1\n");
 
   fprintf(fpasm, "\n");
-  fprintf(fpasm, "fin_distinto_%d:", etiqueta);
+  fprintf(fpasm, "fin_distinto_%d:\n", etiqueta);
   return;
 }
 
@@ -445,7 +446,7 @@ void menor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta) 
   fprintf(fpasm, "  push dword 1\n");
 
   fprintf(fpasm, "\n");
-  fprintf(fpasm, "fin_menor_igual_%d:", etiqueta);
+  fprintf(fpasm, "fin_menor_igual_%d:\n", etiqueta);
   return;
 }
 
@@ -478,7 +479,7 @@ void mayor_igual(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta) 
   fprintf(fpasm, "  push dword 1\n");
 
   fprintf(fpasm, "\n");
-  fprintf(fpasm, "fin_mayor_igual_%d:", etiqueta);
+  fprintf(fpasm, "fin_mayor_igual_%d:\n", etiqueta);
   return;
 }
 
@@ -511,7 +512,7 @@ void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta) {
   fprintf(fpasm, "  push dword 1\n");
 
   fprintf(fpasm, "\n");
-  fprintf(fpasm, "fin_mayor_%d:", etiqueta);
+  fprintf(fpasm, "fin_mayor_%d:\n", etiqueta);
   return;
 }
 
@@ -665,27 +666,27 @@ void escribir_elemento_vector(FILE * fpasm,char * nombre_vector,
   if (fpasm == NULL) return;
 
   /* sacamos de la pila el valor del índice */
-  fprintf(fpasm, "pop dword eax\n");
+  fprintf(fpasm, "  pop dword eax\n");
 
   /* si es una dirección, obtenemos el índice de memoria */
   if (exp_es_direccion == 1) {
-    fprintf(fpasm, "mov dword eax, [eax]\n");
+    fprintf(fpasm, "  mov dword eax, [eax]\n");
   }
 
   /* Control de errores */
   /* Si el índice es menor que 0, termina el programa */
-  fprintf(fpasm, "cmp eax, 0\n");
-  fprintf(fpasm, "jl near fin_indice_fuera_rango\n");
+  fprintf(fpasm, "  cmp eax, 0\n");
+  fprintf(fpasm, "  jl near fin_indice_fuera_rango\n");
   /* Si el índice es mayor que el máximo permitido, termina el programa */
-  fprintf(fpasm, "cmp eax, tam_max-1\n");
-  fprintf(fpasm, "jg near fin_indice_fuera_rango\n");
+  fprintf(fpasm, "  cmp eax, %d-1\n", tam_max);
+  fprintf(fpasm, "  jg near fin_indice_fuera_rango\n");
 
   /* Calcula la dirección efectiva del elemento indexado */
   // UNA OPCIÓN ES CALCULAR CON lea LA DIRECCIÓN EFECTIVA DEL ELEMENTO INDEXADO TRAS CALCULARLA
   // DESPLAZANDO DESDE EL INICIO DEL VECTOR EL VALOR DEL INDICE
-  fprintf(fpasm, "mov dword edx, _%s\n", nombre_vector);
-  fprintf(fpasm, "lea eax, [edx + eax*4]\n"); /* dirección del elemento indexado en eax */
-  fprintf(fpasm, "push dword eax\n"); /* dirección del elemento indexado en la cima de la pila */
+  fprintf(fpasm, "  mov dword edx, _%s\n", nombre_vector);
+  fprintf(fpasm, "  lea eax, [edx + eax*4]\n"); /* dirección del elemento indexado en eax */
+  fprintf(fpasm, "  push dword eax\n"); /* dirección del elemento indexado en la cima de la pila */
 }
 
 
@@ -704,7 +705,7 @@ void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc) {
   fprintf(fd_asm, "  mov ebp, esp\n");
 
   // Reservar espacio para variables locales de la funcion en la pila
-  fprintf(fd_asm, "  sub esp, %d", 4*num_var_loc);
+  fprintf(fd_asm, "  sub esp, %d\n", 4*num_var_loc);
   return;
 }
 
@@ -737,7 +738,7 @@ void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros)
 
   // Cargamos el parametro pos_parametro-esimo en la pila
   fprintf(fpasm, "  lea eax, [ebp + %d]\n", d_ebp);
-  fprintf(fpasm, "  push dword eax");
+  fprintf(fpasm, "  push dword eax\n");
   return;
 }
 
@@ -748,7 +749,7 @@ void escribirVariableLocal(FILE* fpasm, int posicion_variable_local) {
   d_ebp = 4*posicion_variable_local;
 
   fprintf(fpasm, "  lea eax, [ebp - %d]\n", d_ebp);
-  fprintf(fpasm, "  push dword eax");
+  fprintf(fpasm, "  push dword eax\n");
 
   return;
 }
@@ -756,23 +757,23 @@ void escribirVariableLocal(FILE* fpasm, int posicion_variable_local) {
 void asignarDestinoEnPila(FILE* fpasm, int es_variable) {
   if (fpasm == NULL) return;
   /* Obtiene la dirección donde se tiene que asignar */
-  fprintf(fpasm, "pop dword ebx\n");
+  fprintf(fpasm, "  pop dword ebx\n");
   /* Obtiene el valor a asignar */
-  fprintf(fpasm, "pop dword eax\n");
+  fprintf(fpasm, "  pop dword eax\n");
   if (es_variable == 1) {
-    fprintf(fpasm, "mov dword eax, [eax]\n");
+    fprintf(fpasm, "  mov dword eax, [eax]\n");
   }
   /* Realiza la asignación */
-  fprintf(fpasm, "mov dword [ebx], eax\n");
+  fprintf(fpasm, "  mov dword [ebx], eax\n");
 }
 
 void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
     if (fd_asm == NULL) return;
 
     if (es_variable == 1){
-      fprintf(fd_asm, "pop dword eax\n");
-      fprintf(fd_asm, "mov dword eax, [eax]\n");
-      fprintf(fd_asm, "push dword eax\n");
+      fprintf(fd_asm, "  pop dword eax\n");
+      fprintf(fd_asm, "  mov dword eax, [eax]\n");
+      fprintf(fd_asm, "  push dword eax\n");
     }
 
     return;
@@ -781,9 +782,9 @@ void operandoEnPilaAArgumento(FILE * fd_asm, int es_variable){
 void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
   if (fd_asm == NULL) return;
 
-  fprintf(fd_asm, "call %s\n", nombre_funcion);
+  fprintf(fd_asm, "  call _%s\n", nombre_funcion);
   limpiarPila(fd_asm, num_argumentos);
-  fprintf(fd_asm, "push dword eax\n");
+  fprintf(fd_asm, "  push dword eax\n");
 
   return;
 }
@@ -791,6 +792,6 @@ void llamarFuncion(FILE * fd_asm, char * nombre_funcion, int num_argumentos){
 void limpiarPila(FILE * fd_asm, int num_argumentos){
   if (fd_asm == NULL) return;
 
-  fprintf(fd_asm, "add esp, %d\n", num_argumentos*4);
+  fprintf(fd_asm, "  add esp, %d\n", num_argumentos*4);
   return;
 }
