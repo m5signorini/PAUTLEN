@@ -201,7 +201,7 @@ void multiplicar(FILE* fpasm, int es_variable_1, int es_variable_2) {
 void dividir(FILE* fpasm, int es_variable_1, int es_variable_2){
   if (fpasm == NULL) return;
 
-  fprintf(fpasm, "; cargar el segundo operando (divisor) en edx\n");
+  fprintf(fpasm, "; cargar el segundo operando (divisor) en ecx\n");
   fprintf(fpasm, "  pop dword ecx\n");
   if (es_variable_2 == 1){
     fprintf(fpasm, "  mov dword ecx, [ecx]\n");
@@ -217,6 +217,7 @@ void dividir(FILE* fpasm, int es_variable_1, int es_variable_2){
   if (es_variable_1 == 1){
     fprintf(fpasm, "  mov dword eax, [eax]\n");
   }
+  
   fprintf(fpasm, "  mov edx, 0\n");
 
   fprintf(fpasm, "; realizar la division y dejar el resultado en eax \n");
