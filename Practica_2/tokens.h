@@ -1,6 +1,6 @@
 /******************************************************
 Nombre: tokens.h
-Descripción: Definición de tokens para el lenguaje ALFA
+Descripciï¿½n: Definiciï¿½n de tokens para el lenguaje ALFA
 ******************************************************/
 #ifndef _TOKENS_H
 #define _TOKENS_H
@@ -20,7 +20,7 @@ Descripción: Definición de tokens para el lenguaje ALFA
 #define TOK_RETURN              110
 
 
-/* Símbolos */
+/* Sï¿½mbolos */
 #define TOK_PUNTOYCOMA          200
 #define TOK_COMA                201
 #define TOK_PARENTESISIZQUIERDO 202
