@@ -6,13 +6,13 @@
 # Martín Sánchez Signorini
 #########
 CC = gcc
-CFLAGS =  -ansi -pedantic -std=c99 -c
-EXE = pruebaMorfo
+CFLAGS = -ansi -pedantic -c
+EXE = pruebaSintactica
 #########
 
 all: $(EXE)
 
-pruebaMorfo: y.tab.o y.tab.o main.o
+pruebaSintactica: y.tab.o alfa.o main.o
 	$(CC) -o $@ $^
 
 main.o: main.c

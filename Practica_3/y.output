@@ -102,8 +102,8 @@ Gramática
    64            | exp TOK_MENOR exp
    65            | exp TOK_MAYOR exp
 
-   66 constante: constante_entera
-   67          | constante_logica
+   66 constante: constante_logica
+   67          | constante_entera
 
    68 constante_logica: TOK_TRUE
    69                 | TOK_FALSE
@@ -224,9 +224,9 @@ comparacion (70)
 constante (71)
     en la izquierda: 66 67, en la derecha: 51
 constante_logica (72)
-    en la izquierda: 68 69, en la derecha: 67
+    en la izquierda: 68 69, en la derecha: 66
 constante_entera (73)
-    en la izquierda: 70, en la derecha: 10 66
+    en la izquierda: 70, en la derecha: 10 67
 identificador (74)
     en la izquierda: 71, en la derecha: 11 12 15 20 33 35 39 50 55
 
@@ -842,16 +842,16 @@ Estado 57
 
 Estado 58
 
-   67 constante: constante_logica .
+   66 constante: constante_logica .
 
-    $default  reduce usando la regla 67 (constante)
+    $default  reduce usando la regla 66 (constante)
 
 
 Estado 59
 
-   66 constante: constante_entera .
+   67 constante: constante_entera .
 
-    $default  reduce usando la regla 66 (constante)
+    $default  reduce usando la regla 67 (constante)
 
 
 Estado 60

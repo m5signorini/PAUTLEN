@@ -8,8 +8,10 @@
 #include <stdio.h>
 #include "y.tab.h"
 
+extern FILE * out;
 long yylin = 1;
 long yycol = 1;
+/*extern char * yytext;*/
 
 %}
 %option noyywrap
@@ -65,48 +67,48 @@ ERROR		.
 {SALTOLINEA}    { yycol=0; yylin++; }
 {COMENTARIO}    { yycol=0; yylin++; }
 
-{MAIN}      { yycol += yyleng; return TOK_MAIN; }
-{INT}       { yycol += yyleng; return TOK_INT; }
-{BOOLEAN}   { yycol += yyleng; return TOK_BOOLEAN; }
-{ARRAY}     { yycol += yyleng; return TOK_ARRAY; }
-{FUNCTION}  { yycol += yyleng; return TOK_FUNCTION; }
-{IF}        { yycol += yyleng; return TOK_IF; }
-{ELSE}      { yycol += yyleng; return TOK_ELSE; }
-{WHILE}     { yycol += yyleng; return TOK_WHILE; }
-{SCANF}     { yycol += yyleng; return TOK_SCANF; }
-{PRINTF}    { yycol += yyleng; return TOK_PRINTF; }
-{RETURN}    { yycol += yyleng; return TOK_RETURN; }
+{MAIN}      { yycol += yyleng; fprintf(out, ";D:\tmain\n"); return TOK_MAIN; }
+{INT}       { yycol += yyleng; fprintf(out, ";D:\tint\n"); return TOK_INT; }
+{BOOLEAN}   { yycol += yyleng; fprintf(out, ";D:\tboolean\n"); return TOK_BOOLEAN; }
+{ARRAY}     { yycol += yyleng; fprintf(out, ";D:\tarray\n"); return TOK_ARRAY; }
+{FUNCTION}  { yycol += yyleng; fprintf(out, ";D:\tfunction\n");  return TOK_FUNCTION; }
+{IF}        { yycol += yyleng; fprintf(out, ";D:\tif\n");  return TOK_IF; }
+{ELSE}      { yycol += yyleng; fprintf(out, ";D:\telse\n");  return TOK_ELSE; }
+{WHILE}     { yycol += yyleng; fprintf(out, ";D:\twhile\n");  return TOK_WHILE; }
+{SCANF}     { yycol += yyleng; fprintf(out, ";D:\tscanf\n");  return TOK_SCANF; }
+{PRINTF}    { yycol += yyleng; fprintf(out, ";D:\tprintf\n");  return TOK_PRINTF; }
+{RETURN}    { yycol += yyleng; fprintf(out, ";D:\treturn\n");  return TOK_RETURN; }
 
-{PUNTOYCOMA}            { yycol += yyleng; return TOK_PUNTOYCOMA; }
-{COMA}                  { yycol += yyleng; return TOK_COMA; }
-{PARENTESISIZQUIERDO}   { yycol += yyleng; return TOK_PARENTESISIZQUIERDO; }
-{PARENTESISDERECHO}     { yycol += yyleng; return TOK_PARENTESISDERECHO; }
-{CORCHETEIZQUIERDO}     { yycol += yyleng; return TOK_CORCHETEIZQUIERDO; }
-{CORCHETEDERECHO}       { yycol += yyleng; return TOK_CORCHETEDERECHO; }
-{LLAVEIZQUIERDA}        { yycol += yyleng; return TOK_LLAVEIZQUIERDA; }
-{LLAVEDERECHA}          { yycol += yyleng; return TOK_LLAVEDERECHA; }
+{PUNTOYCOMA}            { yycol += yyleng; fprintf(out, ";D:\t;\n"); return TOK_PUNTOYCOMA; }
+{COMA}                  { yycol += yyleng; fprintf(out, ";D:\t,\n"); return TOK_COMA; }
+{PARENTESISIZQUIERDO}   { yycol += yyleng; fprintf(out, ";D:\t(\n"); return TOK_PARENTESISIZQUIERDO; }
+{PARENTESISDERECHO}     { yycol += yyleng; fprintf(out, ";D:\t)\n"); return TOK_PARENTESISDERECHO; }
+{CORCHETEIZQUIERDO}     { yycol += yyleng; fprintf(out, ";D:\t[\n"); return TOK_CORCHETEIZQUIERDO; }
+{CORCHETEDERECHO}       { yycol += yyleng; fprintf(out, ";D:\t]\n"); return TOK_CORCHETEDERECHO; }
+{LLAVEIZQUIERDA}        { yycol += yyleng; fprintf(out, ";D:\t{\n"); return TOK_LLAVEIZQUIERDA; }
+{LLAVEDERECHA}          { yycol += yyleng; fprintf(out, ";D:\t}\n"); return TOK_LLAVEDERECHA; }
 
-{ASIGNACION}            { yycol += yyleng; return TOK_ASIGNACION; }
-{MAS}                   { yycol += yyleng; return TOK_MAS; }
-{MENOS}                 { yycol += yyleng; return TOK_MENOS; }
-{DIVISION}              { yycol += yyleng; return TOK_DIVISION; }
-{ASTERISCO}             { yycol += yyleng; return TOK_ASTERISCO; }
-{AND}                   { yycol += yyleng; return TOK_AND; }
-{OR}                    { yycol += yyleng; return TOK_OR; }
-{NOT}                   { yycol += yyleng; return TOK_NOT; }
-{IGUAL}                 { yycol += yyleng; return TOK_IGUAL; }
-{DISTINTO}              { yycol += yyleng; return TOK_DISTINTO; }
-{MENORIGUAL}            { yycol += yyleng; return TOK_MENORIGUAL; }
-{MAYORIGUAL}            { yycol += yyleng; return TOK_MAYORIGUAL; }
-{MENOR}                 { yycol += yyleng; return TOK_MENOR; }
-{MAYOR}                 { yycol += yyleng; return TOK_MAYOR; }
+{ASIGNACION}            { yycol += yyleng; fprintf(out, ";D:\t=\n");   return TOK_ASIGNACION; }
+{MAS}                   { yycol += yyleng; fprintf(out, ";D:\t+\n");   return TOK_MAS; }
+{MENOS}                 { yycol += yyleng; fprintf(out, ";D:\t-\n");   return TOK_MENOS; }
+{DIVISION}              { yycol += yyleng; fprintf(out, ";D:\t/\n");   return TOK_DIVISION; }
+{ASTERISCO}             { yycol += yyleng; fprintf(out, ";D:\t*\n");   return TOK_ASTERISCO; }
+{AND}                   { yycol += yyleng; fprintf(out, ";D:\t&&\n");  return TOK_AND; }
+{OR}                    { yycol += yyleng; fprintf(out, ";D:\t||\n");  return TOK_OR; }
+{NOT}                   { yycol += yyleng; fprintf(out, ";D:\t}\n");   return TOK_NOT; }
+{IGUAL}                 { yycol += yyleng; fprintf(out, ";D:\t==\n");  return TOK_IGUAL; }
+{DISTINTO}              { yycol += yyleng; fprintf(out, ";D:\t!=\n");  return TOK_DISTINTO; }
+{MENORIGUAL}            { yycol += yyleng; fprintf(out, ";D:\t<=\n");  return TOK_MENORIGUAL; }
+{MAYORIGUAL}            { yycol += yyleng; fprintf(out, ";D:\t>=\n");  return TOK_MAYORIGUAL; }
+{MENOR}                 { yycol += yyleng; fprintf(out, ";D:\t<\n");   return TOK_MENOR; }
+{MAYOR}                 { yycol += yyleng; fprintf(out, ";D:\t>\n");   return TOK_MAYOR; }
 
-{TRUE}      { yycol += yyleng; return TOK_TRUE; }
-{FALSE}     { yycol += yyleng; return TOK_FALSE; }
+{TRUE}      { yycol += yyleng; fprintf(out, ";D:\ttrue\n");  return TOK_TRUE; }
+{FALSE}     { yycol += yyleng; fprintf(out, ";D:\tfalse\n"); return TOK_FALSE; }
 
 {IDENTIFICADORERROR}    { yycol+=yyleng; return TOK_ERROR; }
-{IDENTIFICADOR}         { yycol+=yyleng; return TOK_IDENTIFICADOR; }
-{CONSTANTEENTERA}       { yycol+=yyleng; return TOK_CONSTANTE_ENTERA; }
+{IDENTIFICADOR}         { yycol+=yyleng; fprintf(out, ";D:\t%s\n", yytext); return TOK_IDENTIFICADOR; }
+{CONSTANTEENTERA}       { yycol+=yyleng; fprintf(out, ";D:\t%s\n", yytext); return TOK_CONSTANTE_ENTERA; }
 
 {ERROR}     { yycol += yyleng; return TOK_ERROR; }
 %%
