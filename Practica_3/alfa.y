@@ -1,6 +1,3 @@
-
-
-
 %{
 /* Codigo C directamente incluido */
 #include <stdio.h>
@@ -10,7 +7,7 @@ extern FILE * out;
 extern long yylin;
 extern long yycol;
 %}
-/* tokens */
+
 %token TOK_MAIN
 %token TOK_INT
 %token TOK_BOOLEAN

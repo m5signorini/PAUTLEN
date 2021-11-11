@@ -6,7 +6,7 @@
 # Martín Sánchez Signorini
 #############*/
 #include <stdio.h>
-#include "tokens.h"
+#include "y.tab.h"
 
 long yylin = 1;
 long yycol = 1;
