@@ -1,6 +1,5 @@
 Terminales no usados en la gramática
 
-   TOK_ASIGNACION
    TOK_ERROR
 
 
@@ -58,8 +57,8 @@ Gramática
    31 bloque: condicional
    32       | bucle
 
-   33 asignacion: identificador TOK_IGUAL exp
-   34           | elemento_vector TOK_IGUAL exp
+   33 asignacion: identificador TOK_ASIGNACION exp
+   34           | elemento_vector TOK_ASIGNACION exp
 
    35 elemento_vector: identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO
 
@@ -136,7 +135,7 @@ TOK_CORCHETEIZQUIERDO (273) 10 35
 TOK_CORCHETEDERECHO (274) 10 35
 TOK_LLAVEIZQUIERDA (275) 1 15 36 37 38
 TOK_LLAVEDERECHA (276) 1 15 36 37 38
-TOK_ASIGNACION (277)
+TOK_ASIGNACION (277) 33 34
 TOK_MAS (278) 42
 TOK_MENOS (279) 43 46
 TOK_DIVISION (280) 44
@@ -144,7 +143,7 @@ TOK_ASTERISCO (281) 45
 TOK_AND (282) 47
 TOK_OR (283) 48
 TOK_NOT (284) 49
-TOK_IGUAL (285) 33 34 60
+TOK_IGUAL (285) 60
 TOK_DISTINTO (286) 61
 TOK_MENORIGUAL (287) 62
 TOK_MAYORIGUAL (288) 63
@@ -588,9 +587,9 @@ Estado 33
 
 Estado 34
 
-   34 asignacion: elemento_vector . TOK_IGUAL exp
+   34 asignacion: elemento_vector . TOK_ASIGNACION exp
 
-    TOK_IGUAL  desplazar e ir al estado 65
+    TOK_ASIGNACION  desplazar e ir al estado 65
 
 
 Estado 35
@@ -630,11 +629,11 @@ Estado 39
 
 Estado 40
 
-   33 asignacion: identificador . TOK_IGUAL exp
+   33 asignacion: identificador . TOK_ASIGNACION exp
    35 elemento_vector: identificador . TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO
 
     TOK_CORCHETEIZQUIERDO  desplazar e ir al estado 66
-    TOK_IGUAL              desplazar e ir al estado 67
+    TOK_ASIGNACION         desplazar e ir al estado 67
 
 
 Estado 41
@@ -909,7 +908,7 @@ Estado 64
 
 Estado 65
 
-   34 asignacion: elemento_vector TOK_IGUAL . exp
+   34 asignacion: elemento_vector TOK_ASIGNACION . exp
 
     TOK_PARENTESISIZQUIERDO  desplazar e ir al estado 50
     TOK_MENOS                desplazar e ir al estado 51
@@ -949,7 +948,7 @@ Estado 66
 
 Estado 67
 
-   33 asignacion: identificador TOK_IGUAL . exp
+   33 asignacion: identificador TOK_ASIGNACION . exp
 
     TOK_PARENTESISIZQUIERDO  desplazar e ir al estado 50
     TOK_MENOS                desplazar e ir al estado 51
@@ -1248,7 +1247,7 @@ Estado 83
 
 Estado 84
 
-   34 asignacion: elemento_vector TOK_IGUAL exp .
+   34 asignacion: elemento_vector TOK_ASIGNACION exp .
    42 exp: exp . TOK_MAS exp
    43    | exp . TOK_MENOS exp
    44    | exp . TOK_DIVISION exp
@@ -1287,7 +1286,7 @@ Estado 85
 
 Estado 86
 
-   33 asignacion: identificador TOK_IGUAL exp .
+   33 asignacion: identificador TOK_ASIGNACION exp .
    42 exp: exp . TOK_MAS exp
    43    | exp . TOK_MENOS exp
    44    | exp . TOK_DIVISION exp

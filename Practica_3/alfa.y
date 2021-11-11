@@ -66,7 +66,7 @@ declaraciones: declaracion                  {fprintf(out, ";R2:\t<declaraciones>
              | declaracion declaraciones    {fprintf(out, ";R3:\t<declaraciones> ::= <declaracion> <declaraciones>\n");}
              ;
 
-declaracion: clase identificadores TOK_PUNTOYCOMA {fprintf(out, ";R4:\t<declaracion> ::= <clase> <declaraciones> ;\n");}
+declaracion: clase identificadores TOK_PUNTOYCOMA {fprintf(out, ";R4:\t<declaracion> ::= <clase> <identificadores> ;\n");}
            ;
 
 clase: clase_escalar    {fprintf(out, ";R5:\t<clase> ::= <clase_escalar>\n");}
@@ -105,7 +105,7 @@ resto_parametros_funcion: TOK_PUNTOYCOMA parametro_funcion resto_parametros_func
 parametro_funcion: tipo identificador   {fprintf(out, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n");}
                  ;
 
-declaraciones_funcion: declaraciones    {fprintf(out, ";R28:\t<declaracion> ::= <declaraciones>\n");}
+declaraciones_funcion: declaraciones    {fprintf(out, ";R28:\t<declaraciones_funcion> ::= <declaraciones>\n");}
                      | /* vacío */      {fprintf(out, ";R29:\t<declaraciones_funcion> ::=\n");}
                      ;
 
@@ -127,8 +127,8 @@ bloque: condicional     {fprintf(out, ";R40:\t<bloque> ::= <condicional>\n");}
       | bucle           {fprintf(out, ";R41:\t<bloque> ::= <bucle>\n");}
       ;
 
-asignacion: identificador TOK_IGUAL exp     {fprintf(out, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");}
-          | elemento_vector TOK_IGUAL exp   {fprintf(out, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");}
+asignacion: identificador TOK_ASIGNACION exp     {fprintf(out, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");}
+          | elemento_vector TOK_ASIGNACION exp   {fprintf(out, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");}
 
 elemento_vector: identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {fprintf(out, ";R48:\t<elemento_vector> ::= <identificador> [ <exp> ]\n");}
                ;
@@ -199,5 +199,5 @@ identificador: TOK_IDENTIFICADOR {fprintf(out, ";R108:\t<identificador> ::= TOK_
 
 /* Codigo C al final */
 void yyerror(const char * s) {
-    printf("****Error sintactico en linea: %ld\n", yylin);
+    printf("****Error sintactico en [lin %ld, col %ld]\n", yylin, yycol);
 }
