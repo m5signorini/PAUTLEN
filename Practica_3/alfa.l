@@ -11,6 +11,8 @@
 extern FILE * out;
 long yylin = 1;
 long yycol = 1;
+int error_long_id = 0;   /* a 1 si el identificador es demasiado largo */
+int error_simbolo = 0;   /* a 1 si se ha leído un símbolo no permitido */
 /*extern char * yytext;*/
 
 %}
@@ -106,11 +108,11 @@ ERROR		.
 {TRUE}      { yycol += yyleng; fprintf(out, ";D:\ttrue\n");  return TOK_TRUE; }
 {FALSE}     { yycol += yyleng; fprintf(out, ";D:\tfalse\n"); return TOK_FALSE; }
 
-{IDENTIFICADORERROR}    { yycol+=yyleng; return TOK_ERROR; }
+{IDENTIFICADORERROR}    { yycol+=yyleng; error_long_id = 1; return TOK_ERROR; }
 {IDENTIFICADOR}         { yycol+=yyleng; fprintf(out, ";D:\t%s\n", yytext); return TOK_IDENTIFICADOR; }
 {CONSTANTEENTERA}       { yycol+=yyleng; fprintf(out, ";D:\t%s\n", yytext); return TOK_CONSTANTE_ENTERA; }
 
-{ERROR}     { yycol += yyleng; return TOK_ERROR; }
+{ERROR}     { yycol += yyleng; error_simbolo = 1; return TOK_ERROR; }
 %%
 
 /*

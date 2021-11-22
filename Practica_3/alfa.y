@@ -6,6 +6,9 @@ void yyerror();
 extern FILE * out;
 extern long yylin;
 extern long yycol;
+extern int error_long_id;   /* a 1 si el identificador es demasiado largo */
+extern int error_simbolo;   /* a 1 si se ha leído un símbolo no permitido */
+extern char * yytext;
 %}
 
 %token TOK_MAIN
@@ -199,5 +202,11 @@ identificador: TOK_IDENTIFICADOR {fprintf(out, ";R108:\t<identificador> ::= TOK_
 
 /* Codigo C al final */
 void yyerror(const char * s) {
-    printf("****Error sintactico en [lin %ld, col %ld]\n", yylin, yycol);
+    if(error_long_id == 1) {
+        printf("****Error en [lin %ld, col %ld]: identificador demasiado largo (%s)\n", yylin, yycol, yytext);
+    } else if (error_simbolo == 1) {
+        printf("****Error en [lin %ld, col %ld]: simbolo no permitido (%s)\n", yylin, yycol, yytext);
+    } else {
+        printf("****Error sintactico en [lin %ld, col %ld]\n", yylin, yycol);
+    }
 }
