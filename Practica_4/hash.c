@@ -123,7 +123,10 @@ void* hash_table_search(HashTable* ht, char* key) {
 
 /*
 *   Inserta el elemento con identificador key y datos data en la tabla
-*   Devuelve 1 si no se ha podido insertar, 0 en caso contrario
+*   Devuelve:
+*       0 - insercion correcta
+*       1 - clave ya existente
+*       2 - maxima capacidad alcanzada / error de memoria
 ***********************************************************************
 */
 int hash_table_insert(HashTable* ht, char* key, void* data) {
@@ -135,12 +138,18 @@ int hash_table_insert(HashTable* ht, char* key, void* data) {
 
     /* recorre el array hasta que encuentra una casilla vacía */
     while(ht->items[hashIndex] != NULL) {
+        /* ERROR: Clave ya existente */
+        if(strcmp(ht->items[hashIndex]->key, key) == 0) {
+            return 1;
+        }
+
         /* avanza en la tabla */
         hashIndex++;
         hashIndex = hashIndex % ht->length;
 
-        if(hashIndex == originalIndex) /* si ha dado la vuelta sin encontrar hueco */
-            return 1;
+        /* ERROR: Capacidad maxima alcanzada */
+        if(hashIndex == originalIndex)
+            return 2;
     }
 
     /* crea el nuevo elemento */
@@ -149,7 +158,7 @@ int hash_table_insert(HashTable* ht, char* key, void* data) {
     Item* new_item = NULL;
     new_item = (Item*)malloc(sizeof(Item));
     if (new_item == NULL) {
-        return 1;
+        return 2;
     }
     /* settear datos */
     new_item->data = data;
@@ -165,7 +174,7 @@ int hash_table_insert(HashTable* ht, char* key, void* data) {
 *   Devuelve ese elemento, o NULL si no se ha encontrado
 ******************************************************************
 */
-void* hash_table_delete(HashTable* ht, char* key) {
+void* hash_table_remove(HashTable* ht, char* key) {
     if( ht == NULL || key == NULL) return NULL;
 
     /* obtiene el hash del elemento a eliminar */

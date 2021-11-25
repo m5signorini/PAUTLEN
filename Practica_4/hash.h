@@ -39,7 +39,7 @@ HashTable* hash_table_create(unsigned int length);
 void    hash_table_destroy(HashTable* ht);
 void*   hash_table_search(HashTable* ht, char* key);
 int     hash_table_insert(HashTable* ht, char* key, void* data);
-void*   hash_table_delete(HashTable* ht, char* key);
+void*   hash_table_remove(HashTable* ht, char* key);
 
 /* Para el presente */
 void*   create_hashable_int(int value);
