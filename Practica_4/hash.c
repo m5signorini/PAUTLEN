@@ -3,10 +3,21 @@
 #include <stdlib.h>
 #include "hash.h"
 
+/***********************************
+*   Implementacion de HashTable
+************************************
+*   Usa direccionamiento abierto
+*   con sondeo lineal.
+*   Metodo hash DJB2 para cadenas.
+************************************/
 
 
-/* Obtiene el código hash a partir del identificador utilizando
-    el algoritmo djb2 para hashear cadenas de caracteres*/
+
+/*
+*   Obtiene el código hash a partir del identificador utilizando
+*   el algoritmo djb2 para hashear cadenas de caracteres
+******************************************************************
+*/
 int hash(char* key) {
     int hash = 5381;
     int c;
@@ -17,8 +28,27 @@ int hash(char* key) {
     return hash;
 }
 
+/* Solo util para los tests */
+void* create_hashable_int(int value) {
+    int* result = NULL;
+    result = (int*)malloc(sizeof(int));
+    if(result == NULL) {
+        return NULL;
+    }
+    *result = value;
+    return (void*)result;
+}
 
-HashTable* hash_table_create(uint length) {
+/*TODO: Full implementation*/
+void* create_hashable_data(Data value) {
+    return NULL;
+}
+
+/*
+*   Reserva memoria para un objeto HashTable
+******************************************************************
+*/
+HashTable* hash_table_create(unsigned int length) {
     if (length == 0) return NULL;
 
     HashTable* ht = NULL;
@@ -44,7 +74,10 @@ HashTable* hash_table_create(uint length) {
     return ht;
 }
 
-
+/*
+*   Destruye el objeto HashTable liberando su memoria
+******************************************************************
+*/
 void hash_table_destroy(HashTable* ht) {
     if (ht == NULL) return;
     /* Limpiar datos internos */
@@ -60,8 +93,11 @@ void hash_table_destroy(HashTable* ht) {
 }
 
 
-/* Busca un elemento de identificador key en la tabla.
-    Devuelve el elemento si está presente, NULL en caso contrario */
+/*
+*   Busca un elemento de identificador key en la tabla.
+*   Devuelve el elemento si está presente, NULL en caso contrario
+******************************************************************
+*/
 void* hash_table_search(HashTable* ht, char* key) {
     if(ht == NULL || key == NULL) return NULL;
     
@@ -85,8 +121,11 @@ void* hash_table_search(HashTable* ht, char* key) {
     return NULL;
 }
 
-/* Inserta el elemento con identificador key y datos data en la tabla
-    Devuelve 1 si no se ha podido insertar, 0 en caso contrario */
+/*
+*   Inserta el elemento con identificador key y datos data en la tabla
+*   Devuelve 1 si no se ha podido insertar, 0 en caso contrario
+***********************************************************************
+*/
 int hash_table_insert(HashTable* ht, char* key, void* data) {
     if(ht == NULL || key == NULL || data == NULL) return 1;
 
@@ -121,8 +160,11 @@ int hash_table_insert(HashTable* ht, char* key, void* data) {
     return 0;
 }
 
-/* Elimina el elemento item de la tabla.
-    Devuelve ese elemento, o NULL si no se ha encontrado */
+/*
+*   Elimina el elemento item de la tabla.
+*   Devuelve ese elemento, o NULL si no se ha encontrado
+******************************************************************
+*/
 void* hash_table_delete(HashTable* ht, char* key) {
     if( ht == NULL || key == NULL) return NULL;
 

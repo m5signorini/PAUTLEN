@@ -31,14 +31,19 @@ typedef struct _Item {
 
 typedef struct _HashTable {
     Item** items;
-    uint length;
+    unsigned int length;
 } HashTable;
 
 
-HashTable* hash_table_create(uint length);
+HashTable* hash_table_create(unsigned int length);
 void    hash_table_destroy(HashTable* ht);
 void*   hash_table_search(HashTable* ht, char* key);
 int     hash_table_insert(HashTable* ht, char* key, void* data);
 void*   hash_table_delete(HashTable* ht, char* key);
+
+/* Para el presente */
+void*   create_hashable_int(int value);
+/* Para el futuro */
+void*   create_hashable_data(Data value);
 
 #endif
