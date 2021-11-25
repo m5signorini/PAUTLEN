@@ -25,7 +25,7 @@ typedef struct _Data {
 } Data;
 
 typedef struct _Item {
-   void* data;          /* información a guardar en la tabla */
+   Data data;          /* información a guardar en la tabla */
    char key[KEY_LEN];   /* identificador del elemento (nombre) */
 } Item;
 
@@ -37,13 +37,8 @@ typedef struct _HashTable {
 
 HashTable* hash_table_create(unsigned int length);
 void    hash_table_destroy(HashTable* ht);
-void*   hash_table_search(HashTable* ht, char* key);
-int     hash_table_insert(HashTable* ht, char* key, void* data);
-void*   hash_table_remove(HashTable* ht, char* key);
-
-/* Para el presente */
-void*   create_hashable_int(int value);
-/* Para el futuro */
-void*   create_hashable_data(Data value);
+Data*   hash_table_search(HashTable* ht, char* key);
+int     hash_table_insert(HashTable* ht, char* key, Data data);
+int     hash_table_remove(HashTable* ht, char* key);
 
 #endif

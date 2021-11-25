@@ -22,26 +22,10 @@ int hash(char* key) {
     int hash = 5381;
     int c;
 
-    while (c = *key++)
+    while ((c = *key++))
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
     return hash;
-}
-
-/* Solo util para los tests */
-void* create_hashable_int(int value) {
-    int* result = NULL;
-    result = (int*)malloc(sizeof(int));
-    if(result == NULL) {
-        return NULL;
-    }
-    *result = value;
-    return (void*)result;
-}
-
-/*TODO: Full implementation*/
-void* create_hashable_data(Data value) {
-    return NULL;
 }
 
 /*
@@ -84,6 +68,7 @@ void hash_table_destroy(HashTable* ht) {
     int i = 0;
     for (i=0; i<ht->length; i++) {
         if(ht->items[i] != NULL) {
+            /* Liberar datos (valido?) */
             free(ht->items[i]);
         }
     }
@@ -98,7 +83,7 @@ void hash_table_destroy(HashTable* ht) {
 *   Devuelve el elemento si está presente, NULL en caso contrario
 ******************************************************************
 */
-void* hash_table_search(HashTable* ht, char* key) {
+Data* hash_table_search(HashTable* ht, char* key) {
     if(ht == NULL || key == NULL) return NULL;
     
     int hashIndex = hash(key) % ht->length;   /* obtiene el hash del identificador */
@@ -108,7 +93,7 @@ void* hash_table_search(HashTable* ht, char* key) {
     /* recorre la tabla empezando por el índice dado por el hash */
     while(items[hashIndex] != NULL) {
         if(strcmp(items[hashIndex]->key, key) == 0)
-            return items[hashIndex]->data;   /* si encuentra el elemento, lo retorna */
+            return &items[hashIndex]->data;   /* si encuentra el elemento, lo retorna */
 
         /* avanza en la tabla */
         hashIndex++;
@@ -129,8 +114,8 @@ void* hash_table_search(HashTable* ht, char* key) {
 *       2 - maxima capacidad alcanzada / error de memoria
 ***********************************************************************
 */
-int hash_table_insert(HashTable* ht, char* key, void* data) {
-    if(ht == NULL || key == NULL || data == NULL) return 1;
+int hash_table_insert(HashTable* ht, char* key, Data data) {
+    if(ht == NULL || key == NULL) return 1;
 
     /* obtiene el hash del nuevo elemento */
     int hashIndex = hash(key) % ht->length;
@@ -170,30 +155,29 @@ int hash_table_insert(HashTable* ht, char* key, void* data) {
 }
 
 /*
-*   Elimina el elemento item de la tabla.
-*   Devuelve ese elemento, o NULL si no se ha encontrado
+*   Elimina el elemento con clave key de la tabla.
+*   Devuelve:
+*       0 - eliminacion correcta
+*       1 - no existe la clave
 ******************************************************************
 */
-void* hash_table_remove(HashTable* ht, char* key) {
-    if( ht == NULL || key == NULL) return NULL;
+int hash_table_remove(HashTable* ht, char* key) {
+    if( ht == NULL || key == NULL) return 1;
 
     /* obtiene el hash del elemento a eliminar */
     int hashIndex = hash(key) % ht->length;
     int originalIndex = hashIndex;
-    void* result = NULL;
     Item** items = ht->items;
 
     /* recorre el array hasta que encuentra una casilla vacía */
     while(items[hashIndex] != NULL) {
         if(strcmp(items[hashIndex]->key, key) == 0) {
-            result = items[hashIndex]->data;
-
             /* pone a null el espacio correspondiente de la tabla */
             free(items[hashIndex]);
             items[hashIndex] = NULL;
 
             /* devuelve el elemento eliminado */
-            return result;
+            return 0;
         }
         /* avanza en la tabla */
         hashIndex++;
@@ -203,5 +187,5 @@ void* hash_table_remove(HashTable* ht, char* key) {
             break;
     }
 
-    return NULL;
+    return 1;
 }

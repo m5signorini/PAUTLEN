@@ -4,6 +4,7 @@
 # César Ramírez Martínez
 # Martín Sánchez Signorini
 #############*/
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,27 +12,31 @@
 
 #define TABLESIZE 1024
 
-int yylex();
+#define OP_INSERT   1
+#define OP_AMBIT    2
+#define OP_GET      3
+#define OP_END      4
+
+Data create_hashable_int(int value);
+void print_result(FILE* out, int result, char* key, int parsed_value, int op_type);
+int int_hash_parse_line(char* line, char** ident, int* value);
 
 int main(int argc, char ** argv) {
-    FILE * out = NULL;
-    FILE * in = NULL;
+    FILE* out = NULL;
+    FILE* in = NULL;
 
-    char * line = NULL;
-    char * splitted_line = NULL;
-
+    char* line = NULL;
     size_t len = 0;
-    ssize_t read;
 
-    char * key = NULL;
-    int values[TABLESIZE];
-    int index = 0;
-    void* value;
-    int i, words = 0, fail = -1;
-
-    void *search_result = NULL;
+    int op_type = 0;
+    char* parsed_key = NULL;
+    int parsed_val = 0;
+    int result = 0;
+    Data value;
+    Data* search_result;
 
     HashTable *global_table, *local_table = NULL;
+    HashTable *ht_to_insert = NULL;
     
     /*
     Comprobacion de argumentos de entrada
@@ -65,109 +70,178 @@ int main(int argc, char ** argv) {
     Leemos el fichero de entrada linea por linea
     ****************************************************
     */
-    while ((read = getline(&line, &len, in)) != -1) {
-        for (i = 0; line[i] != '\0'; i++)
-        {
-            if (line[i] == ' ' && line[i+1] != ' ')
-                words++;    
+    while (getline(&line, &len, in) != -1) {
+        parsed_key = 0;
+        parsed_val = 0;
+        op_type = int_hash_parse_line(line, &parsed_key, &parsed_val);
+        if(op_type < 0) {
+            // ERROR: Lectura erronea
+            continue;
         }
-        
-        if (words == 2){
-            splitted_line = strtok(line, " ");
-            /* clave */
-            key = splitted_line;
-            
-            /* valor */
-            splitted_line = strtok(NULL, " ");
-            values[index] = atoi(splitted_line);
-            value = (void*)&values[index++];
 
-            if (value >= 0){
-                if (local_table != NULL) {
-                    /* encontrado ámbito local */
-                    search_result = hash_table_search(local_table, key);
-                    if (search_result != NULL) {
-                        /* fallo, ha encontrado algo */
-                        fprintf(out, "%d %s\n", fail, key);
-                    }
-                    else {
-                        if(hash_table_insert(local_table, key, value) == 0){
-                            fprintf(out, "%s\n", key);
-                        }
-                        else {
-                            fprintf(out, "No se ha encontrado hueco para la clave: %s con valor: %s\n", key, value);
-                        }
-                    }
-                }
-                else {
-                    /* no encontrado ámbito local, luego ámbito global */
-                    search_result = hash_table_search(global_table, key);
-                    if (search_result != NULL) {
-                        /* fallo, ha encontrado algo */
-                        fprintf(out, "%d %s\n", fail, key);
-                    }
-                    else {
-                        if(hash_table_insert(global_table, key, value) == 0){
-                            fprintf(out, "%s\n", key);
-                        }
-                        else {
-                            fprintf(out, "No se ha encontrado hueco para la clave: %s con valor: %d\n", key, *((int*)value));
-                        }
-                    }
-                }
+        /*
+        INTENTO DE INSERCION DEL VALOR
+        ******************************
+        */
+        if(op_type == OP_INSERT) {
+            /*
+            Para las pruebas guardamos valores en un
+            array ya inicializado para evitar reservar memoria
+            constantemente
+            */
+            value = create_hashable_int(parsed_val);
+
+            /*
+            Detectamos si estamos en un ambito local o en el global.
+            Para la insercion solo hace falta tener en cuenta el mas
+            restrictivo (local > global).
+            */
+            ht_to_insert = global_table;
+            if (local_table != NULL) {
+                ht_to_insert = local_table;
             }
-            else {
-                /* apertura ámbito local (luego aún no existe)*/
-                search_result = hash_table_search(global_table, key);
-                if (search_result != NULL) {
-                    /* fallo, ha encontrado algo */
-                    fprintf(out, "%d %s\n", fail, key);
-                }
-                else {
-                    if(hash_table_insert(global_table, key, value) == 0){
-                        fprintf(out, "%s\n", key);
-                    }
-                    else {
-                        fprintf(out, "No se ha encontrado hueco para la clave: %s con valor: %d\n", key, *((int*)value));
-                    }
-                    /* inicializamos la tabla local e insertamos en ella */
-                    local_table = hash_table_create(TABLESIZE);
-                    if(hash_table_insert(local_table, key, value) == 0){
-                        fprintf(out, "%s\n", key);
-                    }
-                    else {
-                        fprintf(out, "No se ha encontrado hueco para la clave: %s con valor: %d\n", key, *((int*)value));
-                    }
+            result = hash_table_insert(ht_to_insert, parsed_key, value);
+            print_result(out, result, parsed_key, parsed_val, OP_INSERT);
+        }
 
-                }
+        /*
+        ABRIR NUEVO AMBITO
+        ******************************
+        */
+        else if (op_type == OP_AMBIT) {
+            if (local_table != NULL) {
+                // ERROR: Ambito ya abierto
+                continue;
             }
 
-        } else if (words == 1) {
-            if (strcmp(line, "cierre -999") == 0) {
-                /* cierra el ámbito local */
-                hash_table_destroy(local_table);
-                local_table = NULL;
-                fprintf(out, "cierre\n");
+            value = create_hashable_int(parsed_val);
+
+            /* INSERCION EN TABLA GLOBAL
+            ******************************
+            */
+            result = hash_table_insert(global_table, parsed_key, value);
+            print_result(out, result, parsed_key, parsed_val, OP_AMBIT);
+            if(result != 0) {
+                continue;
             }
-        } else {    /* busca en la tabla un identificador */
+
+            /* inicializamos la tabla local e insertamos en ella */
+            /* INSERCION EN TABLA LOCAL
+            ******************************
+            */
+            local_table = hash_table_create(TABLESIZE);
+            result = hash_table_insert(local_table, parsed_key, value);
+        }
+
+        /*
+        INTENTO DE RECUPERAR UN VALOR
+        *******************************
+        */
+        else if (op_type == OP_GET) {
             if (local_table != NULL) {
                 /* si está en el ámbito local, busca primero en este ámbito */
-                search_result = hash_table_search(local_table, line);
+                search_result = hash_table_search(local_table, parsed_key);
                 if (search_result != NULL) {    /* encontrado en ámbito local */
-                    fprintf(out, "%s %d\n", line, *((int*)search_result));
+                    fprintf(out, "%s\t%d\n", parsed_key, search_result->elem_category);
+                    continue;
                 }
             }
             /* busca en el ámbito global */
             search_result = hash_table_search(global_table, line);
             if (search_result != NULL) {    /* encontrado en ámbito global */
-                fprintf(out, "%s %d\n", line, *((int*)search_result));
+                fprintf(out, "%s\t%d\n", parsed_key, search_result->elem_category);
             } else {                        /* no se ha encontrado */
-                fprintf(out, "%s -1\n", line);
+                fprintf(out, "%s\t-1\n", parsed_key);
             }
         }
-        
-        printf("%s", line);
+
+        /*
+        CERRAR AMBITO LOCAL (ACTUAL)
+        ******************************
+        */
+        else if (op_type == OP_END) {
+            /* cierra el ámbito local */
+            hash_table_destroy(local_table);
+            local_table = NULL;
+            fprintf(out, "cierre\n");
+        }
     }
 
+    hash_table_destroy(local_table);
+    hash_table_destroy(global_table);
+    fclose(out);
+    fclose(in);
     return 0;
+}
+
+
+void print_result(FILE* out, int result, char* key, int parsed_value, int op_type) {
+    if (op_type == OP_INSERT || op_type == OP_AMBIT) {
+        if(result == 0){
+            // Insercion correcta
+            fprintf(out, "%s\n", key);
+        }
+        else if( result == 1) {
+            // Colision de clave
+            fprintf(out, "-1\t%s\n", key);
+        }
+        else if( result == 2) {
+            // Carga maxima
+            fprintf(out, "No se ha encontrado hueco para la clave: %s con valor: %d\n", key, parsed_value);
+        }
+    }
+}
+
+
+/*
+*   Dada una linea la lee y devuelve en ident y value el identificador
+*   y el valor leidos si los hay. Devuelve como retorno el tipo de operacion.
+******************************************************************************
+*/
+int int_hash_parse_line(char* line, char** ident, int* value) {
+    if(line == NULL || ident == NULL || value == NULL) return -1;
+    char tok[3] = " \t";
+    char* ptr = NULL;
+    char* words[2] = {NULL, NULL};
+    int length = 0;
+
+    // Eliminamos \n y \r
+    line[strcspn(line, "\r\n")] = 0;
+
+    ptr = strtok(line, tok);
+    if(ptr == NULL) {
+        // No hay cadena
+        return -1;
+    }
+    words[0] = ptr;
+    ptr = strtok(NULL, tok);
+    if(ptr == NULL) {
+        // Solo una palabra
+        *ident = words[0];
+        return OP_GET;
+    }
+    words[1] = ptr;
+    ptr = strtok(NULL, tok);
+    if(ptr == NULL) {
+        // Cierre o...
+        if(strcmp(words[0], "cierre") == 0 && strcmp(words[1], "-999") == 0) {
+            return OP_END;
+        }
+        // Dos palabras
+        *ident = words[0];
+        *value = atoi(words[1]);
+        if (*value >= 0) {
+            return OP_INSERT;
+        }
+        return OP_AMBIT;
+    }
+    // Mas de dos palabras es un turbo-error:
+    return -1;
+}
+
+
+/* Solo util para los tests */
+Data create_hashable_int(int value) {
+    Data result = {value, 0, 0, 0, 0, 0 ,0 , 0};
+    return result;
 }
