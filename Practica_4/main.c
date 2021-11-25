@@ -19,8 +19,10 @@ int main(int argc, char ** argv) {
 
     char * line = NULL;
     char * splitted_line = NULL;
+
     size_t len = 0;
     ssize_t read;
+
     char * key = NULL;
     int values[TABLESIZE];
     int index = 0;
@@ -31,6 +33,10 @@ int main(int argc, char ** argv) {
 
     HashTable *global_table, *local_table = NULL;
     
+    /*
+    Comprobacion de argumentos de entrada
+    *************************************
+    */
     if(argc < 3) {
         fprintf(stderr, "****Error en los parámetros, utilizar ./nombre <entrada.txt> <salida.txt>\n");
         return 1;
@@ -45,14 +51,20 @@ int main(int argc, char ** argv) {
         return 1;
     }
 
-    /* crea la tabla global */
+    /* 
+    Crea la tabla global 
+    ***************************************************
+    */
     global_table = hash_table_create(TABLESIZE);
     if(global_table == NULL) {
         printf("*****Error creando la tabla hash\n");
         return 1;
     }
 
-    /* leemos el fichero de entrada linea por linea */
+    /*
+    Leemos el fichero de entrada linea por linea
+    ****************************************************
+    */
     while ((read = getline(&line, &len, in)) != -1) {
         for (i = 0; line[i] != '\0'; i++)
         {
@@ -62,7 +74,7 @@ int main(int argc, char ** argv) {
         
         if (words == 2){
             splitted_line = strtok(line, " ");
-            /* clave*/
+            /* clave */
             key = splitted_line;
             
             /* valor */
