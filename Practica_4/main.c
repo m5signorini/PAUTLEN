@@ -76,6 +76,8 @@ int main(int argc, char ** argv) {
         op_type = int_hash_parse_line(line, &parsed_key, &parsed_val);
         if(op_type < 0) {
             // ERROR: Lectura erronea
+            free(line);
+            line = NULL;
             continue;
         }
 
@@ -111,6 +113,8 @@ int main(int argc, char ** argv) {
         else if (op_type == OP_AMBIT) {
             if (local_table != NULL) {
                 // ERROR: Ambito ya abierto
+                free(line);
+                line = NULL;
                 continue;
             }
 
@@ -122,6 +126,8 @@ int main(int argc, char ** argv) {
             result = hash_table_insert(global_table, parsed_key, value);
             print_result(out, result, parsed_key, parsed_val, OP_AMBIT);
             if(result != 0) {
+                free(line);
+                line = NULL;
                 continue;
             }
 
@@ -143,6 +149,8 @@ int main(int argc, char ** argv) {
                 search_result = hash_table_search(local_table, parsed_key);
                 if (search_result != NULL) {    /* encontrado en ámbito local */
                     fprintf(out, "%s\t%d\n", parsed_key, search_result->elem_category);
+                    free(line);
+                    line = NULL;
                     continue;
                 }
             }
@@ -165,12 +173,15 @@ int main(int argc, char ** argv) {
             local_table = NULL;
             fprintf(out, "cierre\n");
         }
+        free(line);
+        line = NULL;
     }
 
     hash_table_destroy(local_table);
     hash_table_destroy(global_table);
     fclose(out);
     fclose(in);
+    free(line);
     return 0;
 }
 
@@ -203,7 +214,6 @@ int int_hash_parse_line(char* line, char** ident, int* value) {
     char tok[3] = " \t";
     char* ptr = NULL;
     char* words[2] = {NULL, NULL};
-    int length = 0;
 
     // Eliminamos \n y \r
     line[strcspn(line, "\r\n")] = 0;
