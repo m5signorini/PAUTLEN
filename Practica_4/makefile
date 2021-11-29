@@ -25,9 +25,14 @@ hash.o: hash.c hash.h
 main.o: main.c hash.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-run:
+run: prueba_tabla
 	./prueba_tabla entrada.txt turbo-salida.txt
+	diff -bB salida.txt turbo-salida.txt
+
+run_valgrind: prueba_tabla
+	valgrind --leak-check=full ./prueba_tabla entrada.txt turbo-salida.txt
 	diff -bB salida.txt turbo-salida.txt
 
 clean:
 	rm -r -f *.o
+	rm prueba_tabla
