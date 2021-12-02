@@ -11,6 +11,17 @@ extern long yycol;
 extern int error_long_id;   /* a 1 si el identificador es demasiado largo */
 extern int error_simbolo;   /* a 1 si se ha leído un símbolo no permitido */
 extern char * yytext;
+
+/* Tipos actuales para INSERT de variables */
+int tipo_actual;
+int clase_actual;
+int tamanio_vector_actual;
+int pos_variable_local_actual;
+
+/* Tipos para parametros */
+
+/* Tipos para funciones */
+
 %}
 
 %token TOK_MAIN
@@ -62,6 +73,10 @@ extern char * yytext;
 %left TOK_AND TOK_OR
 %left TOK_NOT
 
+%union {
+    info_atributos atributos;
+}
+
 %%
 /* Sección de reglas */
 programa: TOK_MAIN TOK_LLAVEIZQUIERDA declaraciones funciones sentencias TOK_LLAVEDERECHA {fprintf(out, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> }");}
@@ -74,18 +89,28 @@ declaraciones: declaracion                  {fprintf(out, ";R2:\t<declaraciones>
 declaracion: clase identificadores TOK_PUNTOYCOMA {fprintf(out, ";R4:\t<declaracion> ::= <clase> <identificadores> ;\n");}
            ;
 
-clase: clase_escalar    {fprintf(out, ";R5:\t<clase> ::= <clase_escalar>\n");}
-     | clase_vector     {fprintf(out, ";R7:\t<clase> ::= <clase_vector>\n");}
+clase: clase_escalar    {clase_actual = ESCALAR;    fprintf(out, ";R5:\t<clase> ::= <clase_escalar>\n");}
+     | clase_vector     {clase_actual = VECTOR;     fprintf(out, ";R7:\t<clase> ::= <clase_vector>\n");}
      ;
 
 clase_escalar: tipo {fprintf(out, ";R9:\t<clase_escalar> ::= <tipo>\n");}
              ;
 
-tipo: TOK_INT       {fprintf(out, ";R10:\t<tipo> ::= int\n");}
-    | TOK_BOOLEAN   {fprintf(out, ";R11:\t<tipo> ::= boolean\n");}
+tipo: TOK_INT       {tipo_actual = INT;     fprintf(out, ";R10:\t<tipo> ::= int\n");}
+    | TOK_BOOLEAN   {tipo_actual = BOOLEAN; fprintf(out, ";R11:\t<tipo> ::= boolean\n");}
     ;
 
-clase_vector: TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO constante_entera TOK_CORCHETEDERECHO {fprintf(out, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ]\n");}
+clase_vector: TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO constante_entera TOK_CORCHETEDERECHO 
+                {
+                    tamanio_vector_actual = $4.valor_entero;
+                    if (tamanio_vector_actual < 1 || tamanio_vector_actual > MAX_TAMANIO_VECTOR ) {
+                        /* TODO: TIPO ERROR */
+                        print_error_semantico(1);
+                        /* TODO: ACABAR */
+                        return 1;
+                    }
+                    fprintf(out, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ]\n");
+                }
             ;
 
 identificadores: identificador                          {fprintf(out, ";R18:\t<identificadores> ::= <identificador>\n");}
@@ -194,7 +219,11 @@ constante_logica: TOK_TRUE  {fprintf(out, ";R102:\t<constante_logica> ::= true\n
                 | TOK_FALSE {fprintf(out, ";R103:\t<constante_logica> ::= false\n");}
                 ;
 
-constante_entera: TOK_CONSTANTE_ENTERA {fprintf(out, ";R104:\t<constante> ::= <numero>\n");}
+constante_entera: TOK_CONSTANTE_ENTERA 
+                {
+                    $$.valor_entero = $1.valor_entero;
+                    fprintf(out, ";R104:\t<constante> ::= <numero>\n");
+                }
                 ;
 
 identificador: TOK_IDENTIFICADOR {fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");}
@@ -211,4 +240,8 @@ void yyerror(const char * s) {
     } else {
         printf("****Error sintactico en [lin %ld, col %ld]\n", yylin, yycol);
     }
+}
+
+void print_error_semantico(int tipo_error_semantico) {
+    printf("****Error semantico en lin <%ld>: <mensaje>", yylin);
 }

@@ -11,6 +11,8 @@
 #define ESCALAR 1
 #define VECTOR 2
 
+#define MAX_TAMANIO_VECTOR 64
+
 #define KEY_LEN 100
 
 typedef struct _Data {

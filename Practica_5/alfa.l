@@ -6,6 +6,8 @@
 # Martín Sánchez Signorini
 #############*/
 #include <stdio.h>
+#include <stdlib.h>
+#include "alfa.h"
 #include "y.tab.h"
 
 extern FILE * out;
@@ -110,7 +112,7 @@ ERROR		.
 
 {IDENTIFICADORERROR}    { yycol+=yyleng; error_long_id = 1; return TOK_ERROR; }
 {IDENTIFICADOR}         { yycol+=yyleng; fprintf(out, ";D:\t%s\n", yytext); return TOK_IDENTIFICADOR; }
-{CONSTANTEENTERA}       { yycol+=yyleng; fprintf(out, ";D:\t%s\n", yytext); return TOK_CONSTANTE_ENTERA; }
+{CONSTANTEENTERA}       { yycol+=yyleng; yylval.atributos.valor_entero = atoi( yytext ); fprintf(out, ";D:\t%s\n", yytext); return TOK_CONSTANTE_ENTERA; }
 
 {ERROR}     { yycol += yyleng; error_simbolo = 1; return TOK_ERROR; }
 %%

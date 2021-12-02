@@ -6,15 +6,23 @@
 #############*/
 #include <stdio.h>
 #include <string.h>
+#include "hash.h"
+
+#define TABLESIZE 1024
 
 int yylex();
 int yyparse();
 FILE * out = NULL;
 
-
+HashTable* global_ht = NULL;
+HashTable* local_ht = NULL;
+HashTable* actual_ht = NULL;
 
 int main(int argc, char ** argv) {
     extern FILE * yyin;
+    global_ht = hash_table_create(TABLESIZE);
+    actual_ht = global_ht;
+
     /* Error: Numero de parametros */
     if(argc < 3) {
         printf("Error: no hay suficientes parámetros\n");
