@@ -99,7 +99,7 @@ ERROR		.
 {ASTERISCO}             { yycol += yyleng; fprintf(out, ";D:\t*\n");   return TOK_ASTERISCO; }
 {AND}                   { yycol += yyleng; fprintf(out, ";D:\t&&\n");  return TOK_AND; }
 {OR}                    { yycol += yyleng; fprintf(out, ";D:\t||\n");  return TOK_OR; }
-{NOT}                   { yycol += yyleng; fprintf(out, ";D:\t}\n");   return TOK_NOT; }
+{NOT}                   { yycol += yyleng; fprintf(out, ";D:\t!\n");   return TOK_NOT; }
 {IGUAL}                 { yycol += yyleng; fprintf(out, ";D:\t==\n");  return TOK_IGUAL; }
 {DISTINTO}              { yycol += yyleng; fprintf(out, ";D:\t!=\n");  return TOK_DISTINTO; }
 {MENORIGUAL}            { yycol += yyleng; fprintf(out, ";D:\t<=\n");  return TOK_MENORIGUAL; }
