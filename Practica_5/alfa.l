@@ -111,7 +111,7 @@ ERROR		.
 {FALSE}     { yycol += yyleng; fprintf(out, ";D:\tfalse\n"); return TOK_FALSE; }
 
 {IDENTIFICADORERROR}    { yycol+=yyleng; error_long_id = 1; return TOK_ERROR; }
-{IDENTIFICADOR}         { yycol+=yyleng; fprintf(out, ";D:\t%s\n", yytext); return TOK_IDENTIFICADOR; }
+{IDENTIFICADOR}         { yycol+=yyleng; strcpy(yylval.attributes.nombre, yytext); fprintf(out, ";D:\t%s\n", yytext); return TOK_IDENTIFICADOR; }
 {CONSTANTEENTERA}       { yycol+=yyleng; yylval.atributos.valor_entero = atoi( yytext ); fprintf(out, ";D:\t%s\n", yytext); return TOK_CONSTANTE_ENTERA; }
 
 {ERROR}     { yycol += yyleng; error_simbolo = 1; return TOK_ERROR; }

@@ -2,6 +2,7 @@
 /* Codigo C directamente incluido */
 #include <stdio.h>
 #include "hash.h"
+#include "alfa.h"
 
 int yylex();
 void yyerror();
@@ -12,13 +13,20 @@ extern int error_long_id;   /* a 1 si el identificador es demasiado largo */
 extern int error_simbolo;   /* a 1 si se ha leído un símbolo no permitido */
 extern char * yytext;
 
+extern HashTable* global_ht;
+extern HashTable* local_ht;
+extern HashTable* actual_ht;
+
 /* Tipos actuales para INSERT de variables */
 int tipo_actual;
 int clase_actual;
 int tamanio_vector_actual;
 int pos_variable_local_actual;
+int num_variables_locales_actuales;
 
 /* Tipos para parametros */
+int pos_parametro_actual;
+int num_parametros_actual;
 
 /* Tipos para funciones */
 
@@ -73,10 +81,15 @@ int pos_variable_local_actual;
 %left TOK_ASTERISCO TOK_DIVISION
 %left TOK_AND TOK_OR
 %left TOK_NOT
+%left PREC_MINUS
 
 %union {
     info_atributos atributos;
 }
+
+%type <atributos> constante_entera
+%type <atributos> identificador
+%type <atributos> fn_name
 
 %%
 /* Sección de reglas */
@@ -122,9 +135,6 @@ funciones: funcion funciones    {fprintf(out, ";R20:\t<funciones> ::= <funcion> 
          | /* vacio */          {fprintf(out, ";R21:\t<funciones> ::=\n");}
          ;
 
-funcion: TOK_FUNCTION tipo identificador TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion sentencias TOK_LLAVEDERECHA {fprintf(out, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n");}
-       ;
-
 parametros_funcion: parametro_funcion resto_parametros_funcion  {fprintf(out, ";R23:\t<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion>\n");}
                   | /* vacio */                                 {fprintf(out, ";R24:\t<parametros_funcion> ::=\n");}
                   ;
@@ -133,7 +143,7 @@ resto_parametros_funcion: TOK_PUNTOYCOMA parametro_funcion resto_parametros_func
                         | /* vacio */                                               {fprintf(out, ";R26:\t<resto_parametros_funcion> ::=\n");}
                         ;
 
-parametro_funcion: tipo identificador   {fprintf(out, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n");}
+parametro_funcion: tipo idpf   {fprintf(out, ";R27:\t<parametro_funcion> ::= <tipo> <identificador>\n");}
                  ;
 
 declaraciones_funcion: declaraciones    {fprintf(out, ";R28:\t<declaraciones_funcion> ::= <declaraciones>\n");}
@@ -187,7 +197,7 @@ exp: exp TOK_MAS exp                                    {fprintf(out, ";R72:\t<e
    | TOK_MENOS exp                                      {fprintf(out, ";R76:\t<exp> ::= - <exp>\n");}
    | exp TOK_AND exp                                    {fprintf(out, ";R77:\t<exp> ::= <exp> && <exp>\n");}
    | exp TOK_OR exp                                     {fprintf(out, ";R78:\t<exp> ::= <exp> || <exp>\n");}
-   | TOK_NOT exp                                        {fprintf(out, ";R79:\t<exp> ::= ! <exp>\n");}
+   | TOK_NOT exp %prec PREC_MINUS                       {fprintf(out, ";R79:\t<exp> ::= ! <exp>\n");}
    | identificador                                      {fprintf(out, ";R80:\t<exp> ::= <identificador>\n");}
    | constante                                          {fprintf(out, ";R81:\t<exp> ::= <constan>\n");}
    | TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO  {fprintf(out, ";R82:\t<exp> ::= ( <exp> )\n");}
@@ -227,9 +237,122 @@ constante_entera: TOK_CONSTANTE_ENTERA
                 }
                 ;
 
-identificador: TOK_IDENTIFICADOR {fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");}
+identificador: TOK_IDENTIFICADOR 
+                {
+                    fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
+                    /* busca $1 en la tabla de simbolos actual */
+                    if (hash_table_search(actual_ht, $1.nombre) == NULL) {
+                        /* inserta el identificador en la tabla de simbolos */
+                        Data data;
+                        data.elem_category = VARIABLE;
+                        data.datatype = tipo_actual;
+                        data.category = clase_actual;
+                        if (clase_actual == VECTOR) {
+                            data.size = tamanio_vector_actual;
+                        } else {
+                            data.size = 0;
+                        }
+
+                        /* comprobamos si ambito actual es global o local */
+                        if (actual_ht == global_ht) {
+                            data.pos_loc_var = 0;
+                            hash_table_insert(actual_ht, $1.nombre, data);
+                        }
+                        else {
+                            /* Comprobamos NO vector */
+                            if (clase_actual == VECTOR) {
+                                /* TODO: Error vector local */
+                                return 1;
+                            }
+                            /* Insertamos*/
+                            data.pos_loc_var = pos_variable_local_actual;
+                            hash_table_insert(actual_ht, $1.nombre, data);
+
+                            /* Aumentamos variables pos */
+                            pos_variable_local_actual += 1;
+                            num_variables_locales_actuales += 1;
+                        }
+                    } else {
+                        /* TODO mensaje de error: nombre duplicado */
+                        return 1;
+                    }
+                }
              ;
 
+idpf: TOK_IDENTIFICADOR
+        {
+            fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
+            /* Comprobamos que ambito sea local ? */
+            if(actual_ht == global_ht) {
+                /*TODO: Error*/
+                return 1;
+            }
+            Data data;
+            data.elem_category = PARAMETRO;
+            data.datatype = tipo_actual;
+            data.category = clase_actual;
+            if (clase_actual == VECTOR) {
+                data.size = tamanio_vector_actual;
+            } else {
+                data.size = 0;
+            }
+            data.pos = pos_parametro_actual;
+
+            /* inserta el nuevo elemento en la tabla de símbolos actual */
+            /* si ya existe uno con esa clave devuelve error semántico */
+            if(hash_table_insert(actual_ht, $1.nombre, data) != 0) {
+                /*TODO: Error*/
+                return 1;
+            }
+            pos_parametro_actual += 1
+            num_parametros_actual += 1;
+        }
+    ;
+
+fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
+        {
+            /* Buscar en ambito actual */
+            if (actual_ht != global_ht) {
+                /*TODO: Error*/
+                return 1;
+            }
+
+            Data data;
+            data.elem_category = FUNCTION;
+            data.datatype = tipo_actual;
+            if (clase_actual == VECTOR) {
+                data.size = tamanio_vector_actual;
+            } else {
+                data.size = 0;
+            }
+            
+            if (hash_table_insert(actual_ht, $3.nombre, data) != 0) {
+                /* TODO: ERROR */
+                return 1;
+            }
+
+            /* TURBO TODO: Cerrar ambito local, abrir nuevo */
+
+            pos_parametro_actual = 0;
+            pos_variable_local_actual = 1;
+            num_parametros_actual = 0;
+            num_variables_locales_actuales = 0;
+
+            $$.nombre = $3.nombre;
+        }
+        ;
+
+fn_declaration : fn_name TOK_PARENTESISDERECHO parametros_funcion TOKTOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion 
+        {
+            
+        }
+        ;
+
+funcion : fn_declaration sentencias TOK_LLAVEDERECHA 
+        {
+            fprintf(out, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n");
+        }
+        ;
 %%
 
 /* Codigo C al final */

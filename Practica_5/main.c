@@ -21,6 +21,10 @@ HashTable* actual_ht = NULL;
 int main(int argc, char ** argv) {
     extern FILE * yyin;
     global_ht = hash_table_create(TABLESIZE);
+    if (global_ht == NULL) {
+        printf("Error: crear tabla de simbolos\n");
+        return 1;
+    }
     actual_ht = global_ht;
 
     /* Error: Numero de parametros */
