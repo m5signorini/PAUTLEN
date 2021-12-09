@@ -1,0 +1,6 @@
+// Programa que eleva un numero al cuadrado
+
+//x = 2;
+a = 1;
+b = 1 + 3 + 4;
+c = 4 + 5;

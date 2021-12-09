@@ -1,0 +1,5 @@
+// Programa que eleva un numero al cuadrado
+
+
+x = y + 1;
+y = z + 2;

@@ -342,7 +342,7 @@ fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
         }
         ;
 
-fn_declaration : fn_name TOK_PARENTESISDERECHO parametros_funcion TOKTOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion 
+fn_declaration : fn_name TOK_PARENTESISDERECHO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion 
         {
             
         }
