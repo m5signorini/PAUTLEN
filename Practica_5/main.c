@@ -8,8 +8,6 @@
 #include <string.h>
 #include "hash.h"
 
-#define TABLESIZE 1024
-
 int yylex();
 int yyparse();
 FILE * out = NULL;
@@ -20,12 +18,6 @@ HashTable* actual_ht = NULL;
 
 int main(int argc, char ** argv) {
     extern FILE * yyin;
-    global_ht = hash_table_create(TABLESIZE);
-    if (global_ht == NULL) {
-        printf("Error: crear tabla de simbolos\n");
-        return 1;
-    }
-    actual_ht = global_ht;
 
     /* Error: Numero de parametros */
     if(argc < 3) {
@@ -46,8 +38,24 @@ int main(int argc, char ** argv) {
         printf("Error al abrir el fichero de salida\n");
         return 1;
     }
+
+    global_ht = hash_table_create(TABLESIZE);
+    if (global_ht == NULL) {
+        fclose(yyin);
+        fclose(out);
+        printf("Error: crear tabla de simbolos\n");
+        return 1;
+    }
+    actual_ht = global_ht;
     
     yyparse();
+
+    /* Liberar recursos */
+    hash_table_destroy(local_ht);
+    hash_table_destroy(global_ht);
+    local_ht = NULL;
+    global_ht = NULL;
+    actual_ht = NULL;
 
     fclose(yyin);
     fclose(out);

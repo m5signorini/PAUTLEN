@@ -41,6 +41,6 @@ clean:
 	rm -rf *.o
 	rm -rf $(EXE)
 	rm -rf lex.yy.c
-	rm -rf y.tab.h y.tab.c
+	rm -rf y.tab.h y.tab.c y.output
 
 # Utilizar ./ejecutable <entrada.txt> <salida.txt>

@@ -15,6 +15,8 @@
 
 #define KEY_LEN 100
 
+#define TABLESIZE 1024
+
 typedef struct _Data {
     int elem_category;  /* variable, parámetro o función */
     int datatype;       /* entero o booleano */

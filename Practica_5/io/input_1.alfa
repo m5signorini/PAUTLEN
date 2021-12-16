@@ -1,0 +1,12 @@
+//Ejemplo numero uno para pruebas sintacticas
+// Esto son comentarios
+
+main
+{
+    int x, y;
+    boolean z;
+    z = 1;
+    scanf x;
+    y = x + 1;
+    printf y;
+}

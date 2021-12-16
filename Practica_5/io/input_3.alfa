@@ -1,0 +1,11 @@
+// Ejemplo error tabla de simbolos:
+// Acceso a variable no declarada
+
+main
+{
+    int x, y;
+    z = 1;
+    scanf x;
+    y = x + 1;
+    printf y;
+}

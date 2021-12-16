@@ -1,6 +1,5 @@
 
 #ifndef _ALFA_H
-#define _ALFA_H
 
 #define NOMBRE_LEN 100
 

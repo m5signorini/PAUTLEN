@@ -1,0 +1,13 @@
+// Ejemplo error tabla de símbolos: 
+// declaracion duplicada
+
+main
+{
+    int x, y;
+    boolean z;
+    int z;
+    z = 1;
+    scanf x;
+    y = x + 1;
+    printf y;
+}

@@ -1,8 +1,8 @@
-// Programa que eleva un numero al cuadrado
+// Prueba errores de vectores demasiado largos
 
 main {
   int x, resultado;
-  array int[30] y;
+  array int[70] y;
 
   scanf x; // Esta linea lee el valor de x
   resultado = x*x; // Esta linea calcula el cuadrado de x

@@ -1,6 +1,8 @@
 %{
 /* Codigo C directamente incluido */
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "hash.h"
 #include "alfa.h"
 
@@ -22,15 +24,22 @@ int tipo_actual;
 int clase_actual;
 int tamanio_vector_actual;
 int pos_variable_local_actual;
-int num_variables_locales_actuales;
 
 /* Tipos para parametros */
 int pos_parametro_actual;
 int num_parametros_actual;
 
 /* Tipos para funciones */
+int num_variables_locales_actuales;
+
+void print_error_semantico(int tipo_error_semantico, char* nombre);
+Data* simbolos_comprobar(char* nombre);
 
 %}
+
+%union {
+    info_atributos atributos;
+}
 
 %token TOK_MAIN
 %token TOK_INT
@@ -68,9 +77,9 @@ int num_parametros_actual;
 %token TOK_MENOR
 %token TOK_MAYOR
 
-%token TOK_IDENTIFICADOR
+%token <atributos> TOK_IDENTIFICADOR
 
-%token TOK_CONSTANTE_ENTERA
+%token <atributos> TOK_CONSTANTE_ENTERA
 %token TOK_TRUE
 %token TOK_FALSE
 
@@ -83,13 +92,11 @@ int num_parametros_actual;
 %left TOK_NOT
 %left PREC_MINUS
 
-%union {
-    info_atributos atributos;
-}
-
+%type <atributos> exp
 %type <atributos> constante_entera
 %type <atributos> identificador
 %type <atributos> fn_name
+%type <atributos> fn_declaration;
 
 %%
 /* Sección de reglas */
@@ -119,7 +126,7 @@ clase_vector: TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO constante_entera TOK_CORCHETE
                     tamanio_vector_actual = $4.valor_entero;
                     if (tamanio_vector_actual < 1 || tamanio_vector_actual > MAX_TAMANIO_VECTOR ) {
                         /* TODO: TIPO ERROR */
-                        print_error_semantico(1);
+                        print_error_semantico(1, NULL);
                         /* TODO: ACABAR */
                         return 1;
                     }
@@ -134,6 +141,93 @@ identificadores: identificador                          {fprintf(out, ";R18:\t<i
 funciones: funcion funciones    {fprintf(out, ";R20:\t<funciones> ::= <funcion> <funciones>\n");}
          | /* vacio */          {fprintf(out, ";R21:\t<funciones> ::=\n");}
          ;
+
+funcion : fn_declaration sentencias TOK_LLAVEDERECHA 
+        {
+            /* TODO: Necesario realmente comprobar (?) */
+            if (actual_ht == global_ht) {
+                /* TODO: Error ambito erroneo */
+                return 1;
+            }
+            /* Cerrar ambito */
+            hash_table_destroy(local_ht);
+            local_ht = NULL;
+            actual_ht = global_ht;
+
+            /* Actualizar en ambito actual */
+            Data* prev = NULL;
+            prev = hash_table_search(actual_ht, $1.nombre);
+            if (prev == NULL) {
+                /* TODO: Error ambito no encontrado */
+                return 1;
+            }
+            /* TODO: Solo es necesario actualizar variables locales (?) */
+            /* prev->num_params = num_parametros_actual; */
+            prev->num_loc_vars = num_variables_locales_actuales;
+
+            fprintf(out, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n");
+        }
+        ;
+
+fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion 
+        {
+            /* Actualizar identificador en el ambito actual con nueva informacion */
+            Data* prev = NULL;
+            prev = hash_table_search(actual_ht, $1.nombre);
+            if (prev == NULL) {
+                /* TODO: Error ambito no encontrado */
+                return 1;
+            }
+            prev->num_params = num_parametros_actual;
+            /* TODO: Solo es necesario actualizar parametros (?) */
+            /* prev->num_loc_vars = num_variables_locales_actuales;*/
+            strcpy($$.nombre, $1.nombre);
+        }
+        ;
+
+fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
+        {
+            if (actual_ht != global_ht) {
+                /*TODO: Error*/
+                return 1;
+            }
+
+            Data data;
+            data.elem_category = FUNCION;
+            data.datatype = tipo_actual;
+            if (clase_actual == VECTOR) {
+                data.size = tamanio_vector_actual;
+            } else {
+                data.size = 0;
+            }
+            
+            /* Buscar en ambito actual */
+            if (hash_table_insert(actual_ht, $3.nombre, data) != 0) {
+                /* TODO: Error ambito repetido */
+                return 1;
+            }
+
+            /* OPCION 1: Comprobar no cerrado */
+            if (local_ht != NULL) {
+                /* TODO: Error ambito no cerrado (?) */
+                return 1;
+            }
+            local_ht = hash_table_create(TABLESIZE);
+            if (local_ht == NULL) {
+                /* TODO: Error memoria */
+                return 1;
+            }
+            actual_ht = local_ht;
+            hash_table_insert(actual_ht, $3.nombre, data);
+
+            pos_parametro_actual = 0;
+            pos_variable_local_actual = 1;
+            num_parametros_actual = 0;
+            num_variables_locales_actuales = 0;
+
+            strcpy($$.nombre, $3.nombre);
+        }
+        ;
 
 parametros_funcion: parametro_funcion resto_parametros_funcion  {fprintf(out, ";R23:\t<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion>\n");}
                   | /* vacio */                                 {fprintf(out, ";R24:\t<parametros_funcion> ::=\n");}
@@ -168,10 +262,47 @@ bloque: condicional     {fprintf(out, ";R40:\t<bloque> ::= <condicional>\n");}
       | bucle           {fprintf(out, ";R41:\t<bloque> ::= <bucle>\n");}
       ;
 
-asignacion: identificador TOK_ASIGNACION exp     {fprintf(out, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");}
+asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp     
+                {
+                    /* Comprobar existencia de identificador */
+                    Data* search = simbolos_comprobar($1.nombre);
+                    if (search == NULL) {
+                        /* TODO: Error semantico no encontrado */
+                        return 1;
+                    }
+                    /* Comprobaciones semanticas */
+                    if (search->elem_category == FUNCION) {
+                        /* TODO: Error no se puede asignar funcion */
+                        return 1;
+                    }
+                    if (search->category == VECTOR) {
+                        /* TODO: Error no se puede asignar vector */
+                        return 1;
+                    }
+                    /* TODO: Generar codigo */
+                    fprintf(out, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
+                }
           | elemento_vector TOK_ASIGNACION exp   {fprintf(out, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");}
 
-elemento_vector: identificador TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO {fprintf(out, ";R48:\t<elemento_vector> ::= <identificador> [ <exp> ]\n");}
+elemento_vector: TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO 
+                    {
+                        Data* search = simbolos_comprobar($1.nombre);
+                        if (search == NULL) {
+                            /* TODO: Error semantico no encontrado */
+                            return 1;
+                        }
+                        /* Comprobaciones semanticas */
+                        if (search->elem_category == FUNCION) {
+                            /* TODO: Error no es variable o parametro */
+                            return 1;
+                        }
+                        if (search->category != VECTOR) {
+                            /* TODO: Error no es un vector */
+                            return 1;
+                        }
+                        /* TODO: Generar codigo */
+                        fprintf(out, ";R48:\t<elemento_vector> ::= <identificador> [ <exp> ]\n");
+                    }
                ;
 
 condicional: TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA                                                            {fprintf(out, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> }\n");}
@@ -181,7 +312,25 @@ condicional: TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEI
 bucle: TOK_WHILE TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {fprintf(out, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> }\n");}
      ;
 
-lectura: TOK_SCANF identificador    {fprintf(out, ";R54:\t<lectura> ::= scanf <identificador>\n");}
+lectura: TOK_SCANF TOK_IDENTIFICADOR    
+            {
+                Data* search = simbolos_comprobar($2.nombre);
+                if (search == NULL) {
+                    /* TODO: Error semantico no encontrado */
+                    return 1;
+                }
+                /* Comprobaciones semanticas */
+                if (search->elem_category == FUNCION) {
+                    /* TODO: Error no se puede leer funcion */
+                    return 1;
+                }
+                if (search->category == VECTOR) {
+                    /* TODO: Error no se puede leer vector */
+                    return 1;
+                }
+                /* TODO: Generar codigo */
+                fprintf(out, ";R54:\t<lectura> ::= scanf <identificador>\n");
+            }
        ;
 
 escritura: TOK_PRINTF exp           {fprintf(out, ";R56:\t<escritura> ::= printf <exp>\n");}
@@ -190,7 +339,12 @@ escritura: TOK_PRINTF exp           {fprintf(out, ";R56:\t<escritura> ::= printf
 retorno_funcion: TOK_RETURN exp     {fprintf(out, ";R61:\t<retorno_funcion> ::= return <exp>\n");}
                ;
 
-exp: exp TOK_MAS exp                                    {fprintf(out, ";R72:\t<exp> ::= <exp> + <exp>\n");}
+exp: exp TOK_MAS exp                                    
+        {
+            /* Comprobamos tipos */
+            /* Generar codigo */
+            fprintf(out, ";R72:\t<exp> ::= <exp> + <exp>\n");
+        }
    | exp TOK_MENOS exp                                  {fprintf(out, ";R73:\t<exp> ::= <exp> - <exp>\n");}
    | exp TOK_DIVISION exp                               {fprintf(out, ";R74:\t<exp> ::= <exp> / <exp>\n");}
    | exp TOK_ASTERISCO exp                              {fprintf(out, ";R75:\t<exp> ::= <exp> * <exp>\n");}
@@ -198,12 +352,42 @@ exp: exp TOK_MAS exp                                    {fprintf(out, ";R72:\t<e
    | exp TOK_AND exp                                    {fprintf(out, ";R77:\t<exp> ::= <exp> && <exp>\n");}
    | exp TOK_OR exp                                     {fprintf(out, ";R78:\t<exp> ::= <exp> || <exp>\n");}
    | TOK_NOT exp %prec PREC_MINUS                       {fprintf(out, ";R79:\t<exp> ::= ! <exp>\n");}
-   | identificador                                      {fprintf(out, ";R80:\t<exp> ::= <identificador>\n");}
-   | constante                                          {fprintf(out, ";R81:\t<exp> ::= <constan>\n");}
+   | TOK_IDENTIFICADOR                                  
+        {
+            Data* search = simbolos_comprobar($1.nombre);
+            if (search == NULL) {
+                /* TODO: Error semantico no encontrado */
+                return 1;
+            }
+            /* Comprobaciones semanticas */
+            if (search->elem_category == FUNCION) {
+                /* TODO: Error es una funcion */
+                return 1;
+            }
+            if (search->category != ESCALAR) {
+                /* TODO: Error no es un escalar (?) */
+                return 1;
+            }
+            fprintf(out, ";R80:\t<exp> ::= <identificador>\n");
+        }
+   | constante                                          {fprintf(out, ";R81:\t<exp> ::= <constante>\n");}
    | TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO  {fprintf(out, ";R82:\t<exp> ::= ( <exp> )\n");}
    | TOK_PARENTESISIZQUIERDO comparacion TOK_PARENTESISDERECHO  {fprintf(out, ";R83:\t<exp> ::= ( <comparacion> )\n");}
    | elemento_vector                                            {fprintf(out, ";R85:\t<exp> ::= <elemento_vector>\n");}
-   | identificador TOK_PARENTESISIZQUIERDO lista_expresiones TOK_PARENTESISDERECHO {fprintf(out, ";R88:\t<exp> ::= <identificador> ( <lista_expresiones> )\n");}
+   | TOK_IDENTIFICADOR TOK_PARENTESISIZQUIERDO lista_expresiones TOK_PARENTESISDERECHO 
+        {
+            Data* search = simbolos_comprobar($1.nombre);
+            if (search == NULL) {
+                /* TODO: Error semantico no encontrado */
+                return 1;
+            }
+            /* Comprobaciones semanticas */
+            if (search->elem_category != FUNCION) {
+                /* TODO: Error no es una funcion (?) */
+                return 1;
+            }
+            fprintf(out, ";R88:\t<exp> ::= <identificador> ( <lista_expresiones> )\n");
+        }
    ;
 
 lista_expresiones: exp resto_lista_expresiones  {fprintf(out, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n");}
@@ -239,7 +423,6 @@ constante_entera: TOK_CONSTANTE_ENTERA
 
 identificador: TOK_IDENTIFICADOR 
                 {
-                    fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
                     /* busca $1 en la tabla de simbolos actual */
                     if (hash_table_search(actual_ht, $1.nombre) == NULL) {
                         /* inserta el identificador en la tabla de simbolos */
@@ -276,12 +459,12 @@ identificador: TOK_IDENTIFICADOR
                         /* TODO mensaje de error: nombre duplicado */
                         return 1;
                     }
+                    fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
                 }
              ;
 
 idpf: TOK_IDENTIFICADOR
         {
-            fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
             /* Comprobamos que ambito sea local ? */
             if(actual_ht == global_ht) {
                 /*TODO: Error*/
@@ -301,58 +484,15 @@ idpf: TOK_IDENTIFICADOR
             /* inserta el nuevo elemento en la tabla de símbolos actual */
             /* si ya existe uno con esa clave devuelve error semántico */
             if(hash_table_insert(actual_ht, $1.nombre, data) != 0) {
-                /*TODO: Error*/
+                /*TODO: Error ya existente */
                 return 1;
             }
-            pos_parametro_actual += 1
+            pos_parametro_actual += 1;
             num_parametros_actual += 1;
+            fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
         }
     ;
 
-fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
-        {
-            /* Buscar en ambito actual */
-            if (actual_ht != global_ht) {
-                /*TODO: Error*/
-                return 1;
-            }
-
-            Data data;
-            data.elem_category = FUNCTION;
-            data.datatype = tipo_actual;
-            if (clase_actual == VECTOR) {
-                data.size = tamanio_vector_actual;
-            } else {
-                data.size = 0;
-            }
-            
-            if (hash_table_insert(actual_ht, $3.nombre, data) != 0) {
-                /* TODO: ERROR */
-                return 1;
-            }
-
-            /* TURBO TODO: Cerrar ambito local, abrir nuevo */
-
-            pos_parametro_actual = 0;
-            pos_variable_local_actual = 1;
-            num_parametros_actual = 0;
-            num_variables_locales_actuales = 0;
-
-            $$.nombre = $3.nombre;
-        }
-        ;
-
-fn_declaration : fn_name TOK_PARENTESISDERECHO parametros_funcion TOK_PARENTESISDERECHO TOK_LLAVEIZQUIERDA declaraciones_funcion 
-        {
-            
-        }
-        ;
-
-funcion : fn_declaration sentencias TOK_LLAVEDERECHA 
-        {
-            fprintf(out, ";R22:\t<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }\n");
-        }
-        ;
 %%
 
 /* Codigo C al final */
@@ -366,6 +506,100 @@ void yyerror(const char * s) {
     }
 }
 
-void print_error_semantico(int tipo_error_semantico) {
-    printf("****Error semantico en lin <%ld>: <mensaje>", yylin);
+void print_error_semantico(int tipo_error_semantico, char* nombre) {
+    
+    switch(tipo_error_semantico) {
+        
+        /*case ERROR_DEC_DUPLICADA:
+            printf("****Error semantico en lin <%ld>: Declaración duplicada.", yylin);
+            break;
+        
+        case ERROR_ACCESO_VAR_NO_DEC:
+            printf("****Error semantico en lin <%ld>: Acceso a variable no declarada (%s).", yylin, nombre);
+            break;
+
+        case ERROR_OP_ARIT_CON_BOOL:
+            printf("****Error semantico en lin <%ld>: Operacion aritmetica con operandos boolean.", yylin);
+            break;
+        
+        case ERROR_OP_LOG_CON_INT:
+            printf("****Error semantico en lin <%ld>: Operacion logica con operandos int.", yylin);
+            break;
+        
+        case ERROR_COMP_CON_BOOL:
+            printf("****Error semantico en lin <%ld>: Comparacion con operandos boolean.", yylin);
+            break;
+
+        case ERROR_COND_CON_INT:
+            printf("****Error semantico en lin <%ld>: Condicional con condicion de tipo int.", yylin);
+            break;
+        
+        case ERROR_BUCLE_CON_INT:
+            printf("****Error semantico en lin <%ld>: Bucle con condicion de tipo int.", yylin);
+            break;
+    
+        case ERROR_NUM_PARAM:
+            printf("****Error semantico en lin <%ld>: Numero incorrecto de parametros en llamada a funcion.", yylin);
+            break;
+        
+        case ERROR_ASIGNACION:
+            printf("****Error semantico en lin <%ld>: Asignacion incompatible.", yylin);
+            break;
+
+        case ERROR_TAM_VECTOR:
+            printf("****Error semantico en lin <%ld>: El tamanyo del vector %s excede los limites permitidos (1,%d).", yylin, nombre, MAX_TAMANIO_VECTOR);
+            break;
+        
+        case ERROR_INDEXACION:
+            printf("****Error semantico en lin <%ld>: Intento de indexacion de una variable que no es de tipo vector.", yylin);
+            break;
+        
+        case ERROR_INDICE_INDEXACION:
+            printf("****Error semantico en lin <%ld>: El indice en una operacion de indexacion tiene que ser de tipo entero.", yylin);
+            break;
+    
+        case ERROR_FUNCION_SIN_RETORNO:
+            printf("****Error semantico en lin <%ld>: Funcion %s sin sentencia de retorno.", yylin, nombre);
+            break;
+        
+        case ERROR_RETORNO_FUERA_FUNCION:
+            printf("****Error semantico en lin <%ld>: Sentencia de retorno fuera del cuerpo de una función", yylin);
+            break;
+
+        case ERROR_FUNCION_EN_PARAM:
+            printf("****Error semantico en lin <%ld>: No esta permitido el uso de llamadas a funciones como parametros de otras funciones", yylin);
+            break;
+        
+        case ERROR_VAR_LOCAL:
+            printf("****Error semantico en lin <%ld>: Variable local de tipo no escalar.", yylin);
+            break;*/
+    }
+}
+
+/* 
+Comprueba nombre en ambitos abiertos 
+Devuelve:   Data - existe
+            NULL - no existe
+*/
+Data* simbolos_comprobar(char* nombre) {
+    if (nombre == NULL) {
+        return NULL;
+    }
+    Data* search = NULL;
+    search = hash_table_search(actual_ht, nombre);
+    if (search == NULL) {
+        if (actual_ht == local_ht) {
+            search = hash_table_search(global_ht, nombre);
+            if (search == NULL) {
+                /* No encontrado local-global */
+                return NULL;
+            }
+            return search;
+        }
+        else {
+            /* No encontrado global */
+            return NULL;
+        }
+    }
+    return search;
 }
