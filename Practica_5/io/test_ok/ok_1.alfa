@@ -1,0 +1,29 @@
+// Programa que comprueba la compilacion de expresiones aritmeticas
+
+// Comprobado con Valgrind: 2021-12-18 : 0 errores : Martin
+
+main {
+  int x, resultado;
+  array int[30] y;
+
+  y[0] = x;
+  y[1] = resultado;
+  y[2] = x + resultado;
+  y[3] = x - resultado;
+  y[4] = x * resultado;
+  y[5] = x / resultado;
+
+  y[6] = (x+x)*x/x*x-x/x*(x-(x+x*(-x)));
+
+  y[7] = y[8];
+  y[8] = y[x];
+  y[9] = y[y[1]*x+1];
+  y[y[1]*x+1] = y[10];
+
+  // scanf y[11];     // No se pueden leer vectores (especificacion de ALFA)
+  printf y[12];
+
+  scanf x;            // Esta linea lee el valor de x
+  resultado = x*x;    // Esta linea calcula el cuadrado de x
+  printf resultado;   // Esta linea imprime el resultado
+}

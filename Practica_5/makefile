@@ -8,8 +8,8 @@
 CC = gcc
 CFLAGS = -ansi -g -c
 EXE = prueba_semantica
-INPUT = io/input_1.alfa
-OUTPUT = io/output_1.txt
+INPUT = io/test_ok/ok_1.alfa
+OUTPUT = io/o.test
 #########
 
 all: $(EXE)
