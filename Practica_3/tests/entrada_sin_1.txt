@@ -2,7 +2,6 @@
 
 main {
   int x, resultado;
-  array int[30] y;
 
   scanf x; // Esta linea lee el valor de x
   resultado = x*x; // Esta linea calcula el cuadrado de x
