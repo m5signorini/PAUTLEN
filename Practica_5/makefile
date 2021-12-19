@@ -14,7 +14,7 @@ OUTPUT = io/o.test
 
 all: $(EXE)
 
-prueba_semantica: hash.o y.tab.o alfa.o main.o
+prueba_semantica: generacion.o hash.o y.tab.o alfa.o main.o
 	$(CC) -o $@ $^
 
 main.o: main.c hash.h
@@ -31,18 +31,21 @@ lex.yy.c: alfa.l y.tab.h alfa.h
 y.tab.o: y.tab.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-y.tab.c: alfa.y alfa.h hash.h
+y.tab.c: alfa.y alfa.h hash.h generacion.h
 	bison -dyv $<
 
-y.tab.h: alfa.y alfa.h hash.h
+y.tab.h: alfa.y alfa.h hash.h generacion.h
 	bison -dyv $<
 
 # HASH
 hash.o: hash.c hash.h
 	$(CC) -std=c99 -Wall $(CFLAGS) -o $@ $<
 
-# CLEAN
+# GENERACION
+generacion.o: generacion.c generacion.h
+	$(CC) $(CFLAGS) -c generacion.c
 
+# CLEAN
 clean:
 	rm -rf *.o
 	rm -rf $(EXE)
