@@ -141,9 +141,8 @@ clase_vector: TOK_ARRAY tipo TOK_CORCHETEIZQUIERDO constante_entera TOK_CORCHETE
                 {
                     tamanio_vector_actual = $4.valor_entero;
                     if (tamanio_vector_actual < 1 || tamanio_vector_actual > MAX_TAMANIO_VECTOR ) {
-                        /* TODO: TIPO ERROR */
-                        print_error_semantico(1, NULL);
-                        /* TODO: ACABAR */
+                        /* Error tamanio */
+                        print_error_semantico(ERROR_TAM_VECTOR, NULL);
                         return 1;
                     }
                     fprintf(out, ";R15:\t<clase_vector> ::= array <tipo> [ <constante_entera> ]\n");
@@ -183,7 +182,8 @@ funcion : fn_declaration sentencias TOK_LLAVEDERECHA
             /* Para retornos */
             en_cuerpo_funcion = 0;
             if (num_retornos_actuales < 1) {
-                /* TODO: Error funcion sin retorno */
+                /* Error funcion sin retorno */
+                print_error_semantico(ERROR_FUNCION_SIN_RETORNO, $1.nombre);
                 return 1;
             }
             num_retornos_actuales = 0;
@@ -213,7 +213,7 @@ fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTES
 fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
         {
             if (actual_ht != global_ht) {
-                /*TODO: Error*/
+                /*TODO: Error funcion no global */
                 return 1;
             }
 
@@ -228,7 +228,8 @@ fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
             
             /* Buscar en ambito actual */
             if (hash_table_insert(actual_ht, $3.nombre, data) != 0) {
-                /* TODO: Error ambito repetido */
+                /* Error ambito repetido */
+                print_error_semantico(ERROR_DEC_DUPLICADA, NULL);
                 return 1;
             }
 
@@ -239,7 +240,8 @@ fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
             }
             local_ht = hash_table_create(TABLESIZE);
             if (local_ht == NULL) {
-                /* TODO: Error memoria */
+                /* Error memoria */
+                print_error_semantico(ERROR_RESERVA_MEMORIA, NULL);
                 return 1;
             }
             actual_ht = local_ht;
@@ -294,21 +296,25 @@ asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp
                     /* Comprobar existencia de identificador */
                     Data* search = simbolos_comprobar($1.nombre);
                     if (search == NULL) {
-                        /* TODO: Error semantico no encontrado */
+                        /* Error semantico no encontrado */
+                        print_error_semantico(ERROR_ACCESO_VAR_NO_DEC, $1.nombre);
                         return 1;
                     }
                     /* Comprobaciones semanticas */
                     if (search->elem_category == FUNCION) {
-                        /* TODO: Error no se puede asignar funcion */
+                        /* Error no se puede asignar funcion */
+                        print_error_semantico(ERROR_ASIGNACION, NULL);
                         return 1;
                     }
                     if (search->category == VECTOR) {
-                        /* TODO: Error no se puede asignar vector */
+                        /* Error no se puede asignar vector */
+                        print_error_semantico(ERROR_ASIGNACION, NULL);
                         return 1;
                     }
                     /* Comprocacion semantica */
                     if ($3.tipo != search->datatype) {
-                        /* TODO: Error asignacion entre distintos tipos */
+                        /* Error asignacion entre distintos tipos */
+                        print_error_semantico(ERROR_ASIGNACION, NULL);
                         return 1;
                     }
                     /* TODO: Generar codigo */
@@ -318,7 +324,8 @@ asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp
                 {
                     /* Comprocacion semantica */
                     if ($3.tipo != $1.tipo) {
-                        /* TODO: Error asignacion entre distintos tipos */
+                        /* Error asignacion entre distintos tipos */
+                        print_error_semantico(ERROR_ASIGNACION, NULL);
                         return 1;
                     }
                     fprintf(out, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
@@ -329,20 +336,24 @@ elemento_vector: TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO
                         /* Uso de la tabla de simbolos */
                         Data* search = simbolos_comprobar($1.nombre);
                         if (search == NULL) {
-                            /* TODO: Error semantico no encontrado */
+                            /* Error semantico no encontrado */
+                            print_error_semantico(ERROR_ACCESO_VAR_NO_DEC, $1.nombre);
                             return 1;
                         }
                         /* Comprobaciones semanticas */
                         if (search->elem_category == FUNCION) {
-                            /* TODO: Error no es variable o parametro */
+                            /* Error no es variable o parametro */
+                            print_error_semantico(ERROR_INDEXACION, NULL);
                             return 1;
                         }
                         if (search->category != VECTOR) {
-                            /* TODO: Error no es un vector */
+                            /* Error no es un vector */
+                            print_error_semantico(ERROR_INDEXACION, NULL);
                             return 1;
                         }
                         if ($3.tipo != INT) {
-                            /* TODO: Error indice no es entero */
+                            /* Error indice no es entero */
+                            print_error_semantico(ERROR_INDICE_INDEXACION, NULL);
                             return 1;
                         }
                         /* Propagacion semantica */
@@ -372,7 +383,8 @@ if_exp: TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO
             {
                 /* Comprobacion semantica */
                 if ($3.tipo != BOOLEAN) {
-                    /* TODO: Error no boolean dentro de un condicional */
+                    /* Error no boolean dentro de un condicional */
+                    print_error_semantico(ERROR_COND_CON_INT, NULL);
                     return 1;
                 }
             }
@@ -382,7 +394,8 @@ bucle_exp: TOK_WHILE TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO
             {
                 /* Comprobacion semantica */
                 if ($3.tipo != BOOLEAN) {
-                    /* TODO: Error no boolean dentro de un condicional */
+                    /* Error no boolean dentro de un condicional */
+                    print_error_semantico(ERROR_BUCLE_CON_INT, NULL);
                     return 1;
                 }
             }
@@ -393,16 +406,19 @@ lectura: TOK_SCANF TOK_IDENTIFICADOR
                 /* Uso de la tabla de simbolos */
                 Data* search = simbolos_comprobar($2.nombre);
                 if (search == NULL) {
-                    /* TODO: Error semantico no encontrado */
+                    /* Error semantico no encontrado */
+                    print_error_semantico(ERROR_ACCESO_VAR_NO_DEC, $2.nombre);
                     return 1;
                 }
                 /* Comprobaciones semanticas */
                 if (search->elem_category == FUNCION) {
-                    /* TODO: Error no se puede leer funcion */
+                    /* Error no se puede leer funcion */
+                    print_error_semantico(ERROR_ASIGNACION, NULL);
                     return 1;
                 }
                 if (search->category == VECTOR) {
-                    /* TODO: Error no se puede leer vector */
+                    /* Error no se puede leer vector */
+                    print_error_semantico(ERROR_ASIGNACION, NULL);
                     return 1;
                 }
                 /* TODO: Generar codigo */
@@ -424,12 +440,14 @@ retorno_funcion: TOK_RETURN exp
                         /* Comprobacion semantica */
                         /* Presente solo en cuerpos de funcion */
                         if (en_cuerpo_funcion != 1) {
-                            /* TODO: Error retorno fuera de funcion */
+                            /* Error retorno fuera de funcion */
+                            print_error_semantico(ERROR_RETORNO_FUERA_FUNCION, NULL);
                             return 1;
                         }
                         /* Mismo tipo que el retorno de la funcion */
                         if (tipo_retorno_esperado != $2.tipo) {
-                            /* TODO: Error retorno de tipo erroneo */
+                            /* Error retorno de tipo erroneo */
+                            print_error_semantico(ERROR_RETORNO_FUERA_FUNCION, NULL);
                             return 1;
                         }
                         num_retornos_actuales += 1;
@@ -441,7 +459,8 @@ exp: exp TOK_MAS exp
         {
             /* Comprobamos tipos */
             if ($1.tipo != INT || $3.tipo != INT) {
-                /* TODO: Error semantico de tipo */
+                /* Error semantico de tipo */
+                print_error_semantico(ERROR_OP_ARIT_CON_BOOL, NULL);
                 return 1;
             }
             $$.tipo = INT;
@@ -457,7 +476,8 @@ exp: exp TOK_MAS exp
         {
             /* Comprobamos tipos */
             if ($1.tipo != INT || $3.tipo != INT) {
-                /* TODO: Error semantico de tipo */
+                /* Error semantico de tipo */
+                print_error_semantico(ERROR_OP_ARIT_CON_BOOL, NULL);
                 return 1;
             }
             $$.tipo = INT;
@@ -470,7 +490,8 @@ exp: exp TOK_MAS exp
         {
             /* Comprobamos tipos */
             if ($1.tipo != INT || $3.tipo != INT) {
-                /* TODO: Error semantico de tipo */
+                /* Error semantico de tipo */
+                print_error_semantico(ERROR_OP_ARIT_CON_BOOL, NULL);
                 return 1;
             }
             $$.tipo = INT;
@@ -483,7 +504,8 @@ exp: exp TOK_MAS exp
         {
             /* Comprobamos tipos */
             if ($1.tipo != INT || $3.tipo != INT) {
-                /* TODO: Error semantico de tipo */
+                /* Error semantico de tipo */
+                print_error_semantico(ERROR_OP_ARIT_CON_BOOL, NULL);
                 return 1;
             }
             $$.tipo = INT;
@@ -496,7 +518,8 @@ exp: exp TOK_MAS exp
         {
             /* Comprobamos tipos */
             if ($2.tipo != INT) {
-                /* TODO: Error semantico de tipo */
+                /* Error semantico de tipo */
+                print_error_semantico(ERROR_OP_ARIT_CON_BOOL, NULL);
                 return 1;
             }
             $$.tipo = INT;
@@ -509,7 +532,8 @@ exp: exp TOK_MAS exp
         {
             /* Comprobamos tipos */
             if ($1.tipo != BOOLEAN || $3.tipo != BOOLEAN) {
-                /* TODO: Error semantico de tipo */
+                /* Error semantico de tipo */
+                print_error_semantico(ERROR_OP_LOG_CON_INT, NULL);
                 return 1;
             }
             $$.tipo = BOOLEAN;
@@ -522,7 +546,8 @@ exp: exp TOK_MAS exp
         {
             /* Comprobamos tipos */
             if ($1.tipo != BOOLEAN || $3.tipo != BOOLEAN) {
-                /* TODO: Error semantico de tipo */
+                /* Error semantico de tipo */
+                print_error_semantico(ERROR_OP_LOG_CON_INT, NULL);
                 return 1;
             }
             $$.tipo = BOOLEAN;
@@ -535,7 +560,8 @@ exp: exp TOK_MAS exp
         {
             /* Comprobamos tipos */
             if ($2.tipo != BOOLEAN) {
-                /* TODO: Error semantico de tipo */
+                /* Error semantico de tipo */
+                print_error_semantico(ERROR_OP_LOG_CON_INT, NULL);
                 return 1;
             }
             $$.tipo = BOOLEAN;
@@ -549,16 +575,19 @@ exp: exp TOK_MAS exp
             /* Uso de tabla de simbolos */
             Data* search = simbolos_comprobar($1.nombre);
             if (search == NULL) {
-                /* TODO: Error semantico no encontrado */
+                /* Error semantico no encontrado */
+                print_error_semantico(ERROR_ACCESO_VAR_NO_DEC, $1.nombre);
                 return 1;
             }
             /* Comprobaciones semanticas */
             if (search->elem_category == FUNCION) {
-                /* TODO: Error es una funcion */
+                /* Error es una funcion */
+                print_error_semantico(ERROR_ES_FUNCION, $1.nombre);
                 return 1;
             }
             if (search->category != ESCALAR) {
-                /* TODO: Error no es un escalar (?) */
+                /* Error no es un escalar (?) */
+                print_error_semantico(ERROR_NO_ESCALAR, $1.nombre);
                 return 1;
             }
 
@@ -602,7 +631,8 @@ exp: exp TOK_MAS exp
             /* Comprobaciones semanticas */
             Data* search = simbolos_comprobar($1.nombre);
             if (search->num_params != num_parametros_llamada_actual) {
-                /* TODO: Error numero de parametros incorrecto */
+                /* Error numero de parametros incorrecto */
+                print_error_semantico(NUM_PARAM, NULL);
                 return 1;
             }
             en_explist = 0;
@@ -618,16 +648,19 @@ idf_llamada_funcion: TOK_IDENTIFICADOR
                             /* Uso de tabla de simbolos */
                             Data* search = simbolos_comprobar($1.nombre);
                             if (search == NULL) {
-                                /* TODO: Error semantico no encontrado */
+                                /* Error semantico no encontrado */
+                                print_error_semantico(ERROR_ACCESO_VAR_NO_DEC, $1.nombre);
                                 return 1;
                             }
                             /* Comprobaciones semanticas */
                             if (search->elem_category != FUNCION) {
-                                /* TODO: Error no es una funcion */
+                                /* Error no es una funcion */
+                                print_error_semantico(ERROR_NO_ES_FUNCION, $1.nombre);
                                 return 1;
                             }
                             if (en_explist == 1) {
-                                /* TODO: Error llamada como parametro en una llamada a funcion */
+                                /* Error llamada como parametro en una llamada a funcion */
+                                print_error_semantico(ERROR_FUNCION_EN_PARAM, NULL);
                                 return 1;
                             }
                             num_parametros_llamada_actual = 0;
@@ -656,7 +689,8 @@ comparacion: exp TOK_IGUAL exp
                 {
                     /* Comprobamos tipos (solo numericos) */
                     if ($1.tipo != INT || $3.tipo != INT) {
-                        /* TODO: Error semantico de tipo */
+                        /* Error semantico de tipo */
+                        print_error_semantico(ERROR_COMP_CON_BOOL, NULL);
                         return 1;
                     }
                     $$.tipo = BOOLEAN;
@@ -669,7 +703,8 @@ comparacion: exp TOK_IGUAL exp
                 {
                     /* Comprobamos tipos (solo numericos) */
                     if ($1.tipo != INT || $3.tipo != INT) {
-                        /* TODO: Error semantico de tipo */
+                        /* Error semantico de tipo */
+                        print_error_semantico(ERROR_COMP_CON_BOOL, NULL);
                         return 1;
                     }
                     $$.tipo = BOOLEAN;
@@ -682,7 +717,8 @@ comparacion: exp TOK_IGUAL exp
                 {
                     /* Comprobamos tipos (solo numericos) */
                     if ($1.tipo != INT || $3.tipo != INT) {
-                        /* TODO: Error semantico de tipo */
+                        /* Error semantico de tipo */
+                        print_error_semantico(ERROR_COMP_CON_BOOL, NULL);
                         return 1;
                     }
                     $$.tipo = BOOLEAN;
@@ -695,7 +731,8 @@ comparacion: exp TOK_IGUAL exp
                 {
                     /* Comprobamos tipos (solo numericos) */
                     if ($1.tipo != INT || $3.tipo != INT) {
-                        /* TODO: Error semantico de tipo */
+                        /* Error semantico de tipo */
+                        print_error_semantico(ERROR_COMP_CON_BOOL, NULL);
                         return 1;
                     }
                     $$.tipo = BOOLEAN;
@@ -708,7 +745,8 @@ comparacion: exp TOK_IGUAL exp
                 {
                     /* Comprobamos tipos (solo numericos) */
                     if ($1.tipo != INT || $3.tipo != INT) {
-                        /* TODO: Error semantico de tipo */
+                        /* Error semantico de tipo */
+                        print_error_semantico(ERROR_COMP_CON_BOOL, NULL);
                         return 1;
                     }
                     $$.tipo = BOOLEAN;
@@ -721,7 +759,8 @@ comparacion: exp TOK_IGUAL exp
                 {
                     /* Comprobamos tipos (solo numericos) */
                     if ($1.tipo != INT || $3.tipo != INT) {
-                        /* TODO: Error semantico de tipo */
+                        /* Error semantico de tipo */
+                        print_error_semantico(ERROR_COMP_CON_BOOL, NULL);
                         return 1;
                     }
                     $$.tipo = BOOLEAN;
@@ -810,7 +849,8 @@ identificador: TOK_IDENTIFICADOR
                         else {
                             /* Comprobamos NO vector */
                             if (clase_actual == VECTOR) {
-                                /* TODO: Error vector local */
+                                /* Error vector local */
+                                print_error_semantico(ERROR_VAR_LOCAL, NULL);
                                 return 1;
                             }
                             /* Insertamos*/
@@ -822,7 +862,8 @@ identificador: TOK_IDENTIFICADOR
                             num_variables_locales_actuales += 1;
                         }
                     } else {
-                        /* TODO mensaje de error: nombre duplicado */
+                        /* mensaje de error: nombre duplicado */
+                        print_error_semantico(ERROR_DEC_DUPLICADA, NULL);
                         return 1;
                     }
                     fprintf(out, ";R108:\t<identificador> ::= TOK_IDENTIFICADOR\n");
@@ -850,7 +891,7 @@ idpf: TOK_IDENTIFICADOR
             /* inserta el nuevo elemento en la tabla de símbolos actual */
             /* si ya existe uno con esa clave devuelve error semántico */
             if(hash_table_insert(actual_ht, $1.nombre, data) != 0) {
-                /*TODO: Error ya existente */
+                print_error_semantico(ERROR_DEC_DUPLICADA, NULL);
                 return 1;
             }
             pos_parametro_actual += 1;
@@ -873,10 +914,15 @@ void yyerror(const char * s) {
 }
 
 void print_error_semantico(int tipo_error_semantico, char* nombre) {
+    /* Para evitar posibles errores de printf(NULL) */
+    char vacio[1] = {0};
+    if (nombre == NULL) {
+        nombre = vacio;
+    }
     
     switch(tipo_error_semantico) {
         
-        /*case ERROR_DEC_DUPLICADA:
+        case ERROR_DEC_DUPLICADA:
             printf("****Error semantico en lin <%ld>: Declaración duplicada.", yylin);
             break;
         
@@ -913,7 +959,8 @@ void print_error_semantico(int tipo_error_semantico, char* nombre) {
             break;
 
         case ERROR_TAM_VECTOR:
-            printf("****Error semantico en lin <%ld>: El tamanyo del vector %s excede los limites permitidos (1,%d).", yylin, nombre, MAX_TAMANIO_VECTOR);
+            /* No podemos imprimir facilmente el nombre del vector en el punto de error */
+            printf("****Error semantico en lin <%ld>: El tamanyo del vector excede los limites permitidos (1,%d).", yylin, MAX_TAMANIO_VECTOR);
             break;
         
         case ERROR_INDEXACION:
@@ -938,7 +985,24 @@ void print_error_semantico(int tipo_error_semantico, char* nombre) {
         
         case ERROR_VAR_LOCAL:
             printf("****Error semantico en lin <%ld>: Variable local de tipo no escalar.", yylin);
-            break;*/
+            break;
+        
+        /* Errores extra */
+        case ERROR_RESERVA_MEMORIA:
+            printf("****Error del compilador en lin <%ld>: No se pudo reservar la memoria necesaria.", yylin);
+            break;
+        case ERROR_ES_FUNCION:
+            printf("****Error semantico en lin <%ld>: Nombre de funcion usada como variable: %s ", yylin, nombre);
+            break;
+        case ERROR_NO_ESCALAR:
+            printf("****Error semantico en lin <%ld>: Uso de vector no permitido.", yylin);
+            break;
+        case ERROR_NO_ES_FUNCION:
+            printf("****Error semantico en lin <%ld>: Llamada a algo que no es una función: %s ", yylin, nombre);
+            break;
+        case ERROR_INESPERADO:
+            printf("****Error semantico en lin <%ld>: Error inesperado.", yylin);
+            break;
     }
 }
 
