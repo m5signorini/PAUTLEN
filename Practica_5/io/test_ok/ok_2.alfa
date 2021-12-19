@@ -1,0 +1,53 @@
+// Programa que comprueba la compilacion de funciones
+
+// Comprobado con Valgrind: 2021-12-19 : 0 errores : Martin
+
+main {
+    // DECLARACIONES
+    // ****************************
+    int x, y, z;
+    boolean a, b, c;
+    array int[30] li1, li2;
+    array boolean[30] lb1, lb2;
+
+    function int funcionEntera(int m; boolean n) {
+        int fa, fb;
+        boolean ga, gb;
+
+        fa = fb + m;
+        fb = x + li1[0];
+        fa = m - m * m / m / li2[-(m*fa-fb*x)];
+
+        ga = (!n || gb) && ga;
+        gb = (m > fa) && ga;
+
+        return (fa + fb + m);
+    }
+
+    function boolean funcionBoolean(int m; boolean n) {
+        int fa, fb;
+        boolean ga, gb;
+
+        fa = fb + m;
+        fb = x + li1[0];
+        fa = m - m * m / m / li2[-(m*fa-fb*x)];
+
+        ga = (!n || gb) && ga;
+        gb = (m > fa) && ga;
+
+        return (ga && gb || n);
+    }
+
+    // SENTENCIAS
+    // ****************************
+    x = funcionEntera(y, z);
+    y = funcionEntera(x+y+z, x*y/z);
+
+    a = funcionBoolean(b, c);
+    b = funcionBoolean(b && c || a, !c);
+
+    printf x;
+    printf a;
+    printf funcionBoolean(a,b);
+    printf funcionEntera(x, y);
+}

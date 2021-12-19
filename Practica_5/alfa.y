@@ -177,7 +177,7 @@ funcion : fn_declaration sentencias TOK_LLAVEDERECHA
                 return 1;
             }
             /* TODO: Solo es necesario actualizar variables locales (?) */
-            /* prev->num_params = num_parametros_actual; */
+            prev->num_params = num_parametros_actual;
             prev->num_loc_vars = num_variables_locales_actuales;
             /* Para retornos */
             en_cuerpo_funcion = 0;
@@ -203,7 +203,7 @@ fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTES
             }
             prev->num_params = num_parametros_actual;
             /* TODO: Solo es necesario actualizar parametros (?) */
-            /* prev->num_loc_vars = num_variables_locales_actuales;*/
+            prev->num_loc_vars = num_variables_locales_actuales;
             strcpy($$.nombre, $1.nombre);
             /* Para retornos */
             en_cuerpo_funcion = 1;
@@ -220,11 +220,9 @@ fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
             Data data;
             data.elem_category = FUNCION;
             data.datatype = tipo_actual;
-            if (clase_actual == VECTOR) {
-                data.size = tamanio_vector_actual;
-            } else {
-                data.size = 0;
-            }
+            /* Las funciones no usan clase */
+            data.category = ESCALAR;
+            data.size = 0;
             
             /* Buscar en ambito actual */
             if (hash_table_insert(actual_ht, $3.nombre, data) != 0) {
@@ -447,7 +445,7 @@ retorno_funcion: TOK_RETURN exp
                         /* Mismo tipo que el retorno de la funcion */
                         if (tipo_retorno_esperado != $2.tipo) {
                             /* Error retorno de tipo erroneo */
-                            print_error_semantico(ERROR_RETORNO_FUERA_FUNCION, NULL);
+                            print_error_semantico(ERROR_TIPO_RETORNO, NULL);
                             return 1;
                         }
                         num_retornos_actuales += 1;
@@ -632,7 +630,8 @@ exp: exp TOK_MAS exp
             Data* search = simbolos_comprobar($1.nombre);
             if (search->num_params != num_parametros_llamada_actual) {
                 /* Error numero de parametros incorrecto */
-                print_error_semantico(NUM_PARAM, NULL);
+                printf("Datos: %d, %d \n", search->num_params, num_parametros_llamada_actual);
+                print_error_semantico(ERROR_NUM_PARAM, NULL);
                 return 1;
             }
             en_explist = 0;
@@ -880,12 +879,9 @@ idpf: TOK_IDENTIFICADOR
             Data data;
             data.elem_category = PARAMETRO;
             data.datatype = tipo_actual;
-            data.category = clase_actual;
-            if (clase_actual == VECTOR) {
-                data.size = tamanio_vector_actual;
-            } else {
-                data.size = 0;
-            }
+            /* La definicion de vectores no pasa por clase, luego esta no se actualiza*/
+            data.category = ESCALAR;
+            data.size = 0;
             data.pos = pos_parametro_actual;
 
             /* inserta el nuevo elemento en la tabla de símbolos actual */
@@ -995,15 +991,19 @@ void print_error_semantico(int tipo_error_semantico, char* nombre) {
             printf("****Error semantico en lin <%ld>: Nombre de funcion usada como variable: %s ", yylin, nombre);
             break;
         case ERROR_NO_ESCALAR:
-            printf("****Error semantico en lin <%ld>: Uso de vector no permitido.", yylin);
+            printf("****Error semantico en lin <%ld>: Uso de vector no permitido: %s", yylin, nombre);
             break;
         case ERROR_NO_ES_FUNCION:
-            printf("****Error semantico en lin <%ld>: Llamada a algo que no es una función: %s ", yylin, nombre);
+            printf("****Error semantico en lin <%ld>: Llamada a algo que no es una funcion: %s ", yylin, nombre);
+            break;
+        case ERROR_TIPO_RETORNO:
+            printf("****Error semantico en lin <%ld>: Retorno de funcion de tipo erroneo.", yylin);
             break;
         case ERROR_INESPERADO:
             printf("****Error semantico en lin <%ld>: Error inesperado.", yylin);
             break;
     }
+    printf("\n");
 }
 
 /* 

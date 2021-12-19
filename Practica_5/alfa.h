@@ -25,6 +25,7 @@
 #define ERROR_ES_FUNCION                101
 #define ERROR_NO_ES_FUNCION             102
 #define ERROR_NO_ESCALAR                103
+#define ERROR_TIPO_RETORNO              104
 #define ERROR_INESPERADO                404
 
 /*

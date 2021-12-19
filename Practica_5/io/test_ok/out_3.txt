@@ -1,0 +1,678 @@
+;D:	main
+;D:	{
+;D:	int
+;R10:	<tipo> ::= int
+;R9:	<clase_escalar> ::= <tipo>
+;R5:	<clase> ::= <clase_escalar>
+;D:	x
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;D:	;
+;R18:	<identificadores> ::= <identificador>
+;R4:	<declaracion> ::= <clase> <identificadores> ;
+;D:	array
+;D:	boolean
+;R11:	<tipo> ::= boolean
+;D:	[
+;D:	3
+;R104:	<constante> ::= <numero>
+;D:	]
+;R15:	<clase_vector> ::= array <tipo> [ <constante_entera> ]
+;R7:	<clase> ::= <clase_vector>
+;D:	resultado
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;D:	;
+;R18:	<identificadores> ::= <identificador>
+;R4:	<declaracion> ::= <clase> <identificadores> ;
+;D:	array
+;D:	int
+;R10:	<tipo> ::= int
+;D:	[
+;D:	3
+;R104:	<constante> ::= <numero>
+;D:	]
+;R15:	<clase_vector> ::= array <tipo> [ <constante_entera> ]
+;R7:	<clase> ::= <clase_vector>
+;D:	y
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;D:	;
+;R18:	<identificadores> ::= <identificador>
+;R4:	<declaracion> ::= <clase> <identificadores> ;
+;D:	boolean
+;R11:	<tipo> ::= boolean
+;R9:	<clase_escalar> ::= <tipo>
+;R5:	<clase> ::= <clase_escalar>
+;D:	resAnd
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;D:	,
+;D:	resOr
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;D:	,
+;D:	resNot
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;D:	;
+;R18:	<identificadores> ::= <identificador>
+;R19:	<identificadores> ::= <identificador> , <identificadores>
+;R19:	<identificadores> ::= <identificador> , <identificadores>
+;R4:	<declaracion> ::= <clase> <identificadores> ;
+;D:	function
+;R2:	<declaraciones> ::= <declaracion>
+;R3:	<declaraciones> ::= <declaracion> <declaraciones>
+;R3:	<declaraciones> ::= <declaracion> <declaraciones>
+;R3:	<declaraciones> ::= <declaracion> <declaraciones>
+;D:	boolean
+;R11:	<tipo> ::= boolean
+;D:	sumIsBiggerThanTen
+;D:	(
+;D:	int
+;R10:	<tipo> ::= int
+;D:	num1
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;R27:	<parametro_funcion> ::= <tipo> <identificador>
+;D:	;
+;D:	int
+;R10:	<tipo> ::= int
+;D:	num2
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;R27:	<parametro_funcion> ::= <tipo> <identificador>
+;D:	)
+;R26:	<resto_parametros_funcion> ::=
+;R25:	<resto_parametros_funcion> ::= ; <parametro_funcion> <resto_parametros_funcion>
+;R23:	<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion>
+;D:	{
+;D:	int
+;R10:	<tipo> ::= int
+;R9:	<clase_escalar> ::= <tipo>
+;R5:	<clase> ::= <clase_escalar>
+;D:	sum
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;D:	;
+;R18:	<identificadores> ::= <identificador>
+;R4:	<declaracion> ::= <clase> <identificadores> ;
+;D:	sum
+;R2:	<declaraciones> ::= <declaracion>
+;R28:	<declaraciones_funcion> ::= <declaraciones>
+;D:	=
+;D:	num1
+;D:	+
+;R80:	<exp> ::= <identificador>
+;D:	num2
+;D:	;
+;R80:	<exp> ::= <identificador>
+;R72:	<exp> ::= <exp> + <exp>
+;R43:	<asignacion> ::= <identificador> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	if
+;D:	(
+;D:	(
+;D:	sum
+;D:	<
+;R80:	<exp> ::= <identificador>
+;D:	10
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	)
+;R97:	<comparacion> ::= <exp> < <exp>
+;R83:	<exp> ::= ( <comparacion> )
+;D:	)
+;D:	{
+;D:	return
+;D:	false
+;R103:	<constante_logica> ::= false
+;R99:	<constante> ::= <constante_logica>
+;R81:	<exp> ::= <constante>
+;D:	;
+;R61:	<retorno_funcion> ::= return <exp>
+;R38:	<sentencia_simple> ::= <retorno_funcion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	}
+;R30:	<sentencias> ::= <sentencia>
+;D:	return
+;R50:	<condicional> ::= if ( <exp> ) { <sentencias> }
+;R40:	<bloque> ::= <condicional>
+;R33:	<sentencia> ::= <bloque>
+;D:	true
+;R102:	<constante_logica> ::= true
+;R99:	<constante> ::= <constante_logica>
+;R81:	<exp> ::= <constante>
+;D:	;
+;R61:	<retorno_funcion> ::= return <exp>
+;R38:	<sentencia_simple> ::= <retorno_funcion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	}
+;R30:	<sentencias> ::= <sentencia>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R22:	<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }
+;D:	function
+;D:	int
+;R10:	<tipo> ::= int
+;D:	cuadrado
+;D:	(
+;D:	int
+;R10:	<tipo> ::= int
+;D:	num
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;R27:	<parametro_funcion> ::= <tipo> <identificador>
+;D:	)
+;R26:	<resto_parametros_funcion> ::=
+;R23:	<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion>
+;D:	{
+;D:	return
+;R29:	<declaraciones_funcion> ::=
+;D:	num
+;D:	*
+;R80:	<exp> ::= <identificador>
+;D:	num
+;D:	;
+;R80:	<exp> ::= <identificador>
+;R75:	<exp> ::= <exp> * <exp>
+;R61:	<retorno_funcion> ::= return <exp>
+;R38:	<sentencia_simple> ::= <retorno_funcion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	}
+;R30:	<sentencias> ::= <sentencia>
+;R22:	<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }
+;D:	function
+;D:	boolean
+;R11:	<tipo> ::= boolean
+;D:	andOrNot
+;D:	(
+;D:	boolean
+;R11:	<tipo> ::= boolean
+;D:	b1
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;R27:	<parametro_funcion> ::= <tipo> <identificador>
+;D:	;
+;D:	boolean
+;R11:	<tipo> ::= boolean
+;D:	b2
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;R27:	<parametro_funcion> ::= <tipo> <identificador>
+;D:	;
+;D:	int
+;R10:	<tipo> ::= int
+;D:	op
+;R108:	<identificador> ::= TOK_IDENTIFICADOR
+;R27:	<parametro_funcion> ::= <tipo> <identificador>
+;D:	)
+;R26:	<resto_parametros_funcion> ::=
+;R25:	<resto_parametros_funcion> ::= ; <parametro_funcion> <resto_parametros_funcion>
+;R25:	<resto_parametros_funcion> ::= ; <parametro_funcion> <resto_parametros_funcion>
+;R23:	<parametros_funcion> ::= <parametro_funcion> <resto_parametros_funcion>
+;D:	{
+;D:	if
+;R29:	<declaraciones_funcion> ::=
+;D:	(
+;D:	(
+;D:	op
+;D:	==
+;R80:	<exp> ::= <identificador>
+;D:	0
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	)
+;R93:	<comparacion> ::= <exp> == <exp>
+;R83:	<exp> ::= ( <comparacion> )
+;D:	)
+;D:	{
+;D:	return
+;D:	b1
+;D:	&&
+;R80:	<exp> ::= <identificador>
+;D:	b2
+;D:	;
+;R80:	<exp> ::= <identificador>
+;R77:	<exp> ::= <exp> && <exp>
+;R61:	<retorno_funcion> ::= return <exp>
+;R38:	<sentencia_simple> ::= <retorno_funcion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	}
+;R30:	<sentencias> ::= <sentencia>
+;D:	if
+;R50:	<condicional> ::= if ( <exp> ) { <sentencias> }
+;R40:	<bloque> ::= <condicional>
+;R33:	<sentencia> ::= <bloque>
+;D:	(
+;D:	(
+;D:	op
+;D:	==
+;R80:	<exp> ::= <identificador>
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	)
+;R93:	<comparacion> ::= <exp> == <exp>
+;R83:	<exp> ::= ( <comparacion> )
+;D:	)
+;D:	{
+;D:	return
+;D:	b1
+;D:	||
+;R80:	<exp> ::= <identificador>
+;D:	b2
+;D:	;
+;R80:	<exp> ::= <identificador>
+;R78:	<exp> ::= <exp> || <exp>
+;R61:	<retorno_funcion> ::= return <exp>
+;R38:	<sentencia_simple> ::= <retorno_funcion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	}
+;R30:	<sentencias> ::= <sentencia>
+;D:	if
+;R50:	<condicional> ::= if ( <exp> ) { <sentencias> }
+;R40:	<bloque> ::= <condicional>
+;R33:	<sentencia> ::= <bloque>
+;D:	(
+;D:	(
+;D:	op
+;D:	==
+;R80:	<exp> ::= <identificador>
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	)
+;R93:	<comparacion> ::= <exp> == <exp>
+;R83:	<exp> ::= ( <comparacion> )
+;D:	)
+;D:	{
+;D:	return
+;D:	!
+;D:	b1
+;D:	;
+;R80:	<exp> ::= <identificador>
+;R79:	<exp> ::= ! <exp>
+;R61:	<retorno_funcion> ::= return <exp>
+;R38:	<sentencia_simple> ::= <retorno_funcion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	}
+;R30:	<sentencias> ::= <sentencia>
+;D:	return
+;R50:	<condicional> ::= if ( <exp> ) { <sentencias> }
+;R40:	<bloque> ::= <condicional>
+;R33:	<sentencia> ::= <bloque>
+;D:	false
+;R103:	<constante_logica> ::= false
+;R99:	<constante> ::= <constante_logica>
+;R81:	<exp> ::= <constante>
+;D:	;
+;R61:	<retorno_funcion> ::= return <exp>
+;R38:	<sentencia_simple> ::= <retorno_funcion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	}
+;R30:	<sentencias> ::= <sentencia>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R22:	<funcion> ::= function <tipo> <identificador> ( <parametros_funcion> ) { <declaraciones_funcion> <sentencias> }
+;D:	y
+;R21:	<funciones> ::=
+;R20:	<funciones> ::= <funcion> <funciones>
+;R20:	<funciones> ::= <funcion> <funciones>
+;R20:	<funciones> ::= <funcion> <funciones>
+;D:	[
+;D:	0
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;D:	=
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	;
+;R44:	<asignacion> ::= <elemento_vector> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	y
+;D:	[
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;D:	=
+;D:	y
+;D:	[
+;D:	0
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	+
+;D:	3
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	;
+;R72:	<exp> ::= <exp> + <exp>
+;R44:	<asignacion> ::= <elemento_vector> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	y
+;D:	[
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;D:	=
+;D:	cuadrado
+;D:	(
+;D:	y
+;D:	[
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	)
+;R92:	<resto_lista_expresiones> ::=
+;R89:	<lista_expresiones> ::= <exp> <resto_lista_expresiones>
+;R88:	<exp> ::= <identificador> ( <lista_expresiones> )
+;D:	;
+;R44:	<asignacion> ::= <elemento_vector> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	resultado
+;D:	[
+;D:	0
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;D:	=
+;D:	sumIsBiggerThanTen
+;D:	(
+;D:	x
+;D:	,
+;R80:	<exp> ::= <identificador>
+;D:	y
+;D:	[
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	)
+;R92:	<resto_lista_expresiones> ::=
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R89:	<lista_expresiones> ::= <exp> <resto_lista_expresiones>
+;R88:	<exp> ::= <identificador> ( <lista_expresiones> )
+;D:	;
+;R44:	<asignacion> ::= <elemento_vector> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	resultado
+;D:	[
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;D:	=
+;D:	sumIsBiggerThanTen
+;D:	(
+;D:	x
+;D:	,
+;R80:	<exp> ::= <identificador>
+;D:	y
+;D:	[
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	)
+;R92:	<resto_lista_expresiones> ::=
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R89:	<lista_expresiones> ::= <exp> <resto_lista_expresiones>
+;R88:	<exp> ::= <identificador> ( <lista_expresiones> )
+;D:	;
+;R44:	<asignacion> ::= <elemento_vector> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	resultado
+;D:	[
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;D:	=
+;D:	sumIsBiggerThanTen
+;D:	(
+;D:	x
+;D:	,
+;R80:	<exp> ::= <identificador>
+;D:	y
+;D:	[
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	)
+;R92:	<resto_lista_expresiones> ::=
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R89:	<lista_expresiones> ::= <exp> <resto_lista_expresiones>
+;R88:	<exp> ::= <identificador> ( <lista_expresiones> )
+;D:	;
+;R44:	<asignacion> ::= <elemento_vector> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	printf
+;D:	resultado
+;D:	[
+;D:	0
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	;
+;R56:	<escritura> ::= printf <exp>
+;R36:	<sentencia_simple> ::= <escritura>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	printf
+;D:	resultado
+;D:	[
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	;
+;R56:	<escritura> ::= printf <exp>
+;R36:	<sentencia_simple> ::= <escritura>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	printf
+;D:	resultado
+;D:	[
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	;
+;R56:	<escritura> ::= printf <exp>
+;R36:	<sentencia_simple> ::= <escritura>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	resAnd
+;D:	=
+;D:	andOrNot
+;D:	(
+;D:	resultado
+;D:	[
+;D:	0
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	,
+;D:	resultado
+;D:	[
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	,
+;D:	0
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	)
+;R92:	<resto_lista_expresiones> ::=
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R89:	<lista_expresiones> ::= <exp> <resto_lista_expresiones>
+;R88:	<exp> ::= <identificador> ( <lista_expresiones> )
+;D:	;
+;R43:	<asignacion> ::= <identificador> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	printf
+;D:	resAnd
+;D:	;
+;R80:	<exp> ::= <identificador>
+;R56:	<escritura> ::= printf <exp>
+;R36:	<sentencia_simple> ::= <escritura>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	resOr
+;D:	=
+;D:	andOrNot
+;D:	(
+;D:	resultado
+;D:	[
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	,
+;D:	resultado
+;D:	[
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	,
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	)
+;R92:	<resto_lista_expresiones> ::=
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R89:	<lista_expresiones> ::= <exp> <resto_lista_expresiones>
+;R88:	<exp> ::= <identificador> ( <lista_expresiones> )
+;D:	;
+;R43:	<asignacion> ::= <identificador> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	printf
+;D:	resOr
+;D:	;
+;R80:	<exp> ::= <identificador>
+;R56:	<escritura> ::= printf <exp>
+;R36:	<sentencia_simple> ::= <escritura>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	resNot
+;D:	=
+;D:	andOrNot
+;D:	(
+;D:	resultado
+;D:	[
+;D:	1
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	,
+;D:	resultado
+;D:	[
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	]
+;R48:	<elemento_vector> ::= <identificador> [ <exp> ]
+;R85:	<exp> ::= <elemento_vector>
+;D:	,
+;D:	2
+;R104:	<constante> ::= <numero>
+;R100:	<constante> ::= <constante_entera>
+;R81:	<exp> ::= <constante>
+;D:	)
+;R92:	<resto_lista_expresiones> ::=
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R91:	<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>
+;R89:	<lista_expresiones> ::= <exp> <resto_lista_expresiones>
+;R88:	<exp> ::= <identificador> ( <lista_expresiones> )
+;D:	;
+;R43:	<asignacion> ::= <identificador> = <exp>
+;R34:	<sentencia_simple> ::= <asignacion>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	printf
+;D:	resNot
+;D:	;
+;R80:	<exp> ::= <identificador>
+;R56:	<escritura> ::= printf <exp>
+;R36:	<sentencia_simple> ::= <escritura>
+;R32:	<sentencia> ::= <sentencia_simple> ;
+;D:	}
+;R30:	<sentencias> ::= <sentencia>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R31:	<sentencias> ::= <sentencia> <sentencias>
+;R1:	<programa> ::= main { <declaraciones> <funciones> <sentencias> }
