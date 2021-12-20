@@ -71,8 +71,8 @@ main
 
         x = 1;
         y = -1;
-        //scanf x;
-        //scanf y;
+        scanf x;
+        scanf y;
         // Imprime 4 (a1 = 5)
         printf (a1 - x);
         // Devuelve 5 (a2 = -5)
