@@ -18,6 +18,10 @@
 #define ERROR_RETORNO_FUERA_FUNCION     14
 #define ERROR_FUNCION_EN_PARAM          15
 #define ERROR_VAR_LOCAL                 16
+#define ERROR_AMBITO_ERRONEO            17
+#define ERROR_AMBITO_NO_ENCONTRADO      18
+#define ERROR_FUNCION_NO_GLOBAL         19
+#define ERROR_AMBITO_NO_CERRADO         20
 
 #define ERROR_RESERVA_MEMORIA           100
 #define ERROR_ES_FUNCION                101

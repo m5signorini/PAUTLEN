@@ -16,6 +16,8 @@ extern int error_long_id;   /* a 1 si el identificador es demasiado largo */
 extern int error_simbolo;   /* a 1 si se ha leído un símbolo no permitido */
 extern char * yytext;
 
+char aux[NOMBRE_LEN];
+
 extern HashTable* global_ht;
 extern HashTable* local_ht;
 extern HashTable* actual_ht;
@@ -218,6 +220,7 @@ funcion : fn_declaration sentencias TOK_LLAVEDERECHA
             /* TODO: Necesario realmente comprobar (?) */
             if (actual_ht == global_ht) {
                 /* TODO: Error ambito erroneo */
+                print_errores_ambito(ERROR_AMBITO_ERRONEO);
                 return 1;
             }
             /* Cerrar ambito */
@@ -230,6 +233,7 @@ funcion : fn_declaration sentencias TOK_LLAVEDERECHA
             prev = hash_table_search(actual_ht, $1.nombre);
             if (prev == NULL) {
                 /* TODO: Error ambito no encontrado */
+                print_errores_ambito(ERROR_AMBITO_NO_ENCONTRADO);
                 return 1;
             }
             /* TODO: Solo es necesario actualizar variables locales (?) */
@@ -254,6 +258,7 @@ fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTES
             prev = hash_table_search(actual_ht, $1.nombre);
             if (prev == NULL) {
                 /* TODO: Error ambito no encontrado */
+                print_errores_ambito(ERROR_AMBITO_NO_ENCONTRADO);
                 return 1;
             }
             prev->num_params = num_parametros_actual;
@@ -270,6 +275,7 @@ fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
         {
             if (actual_ht != global_ht) {
                 /*TODO: Error funcion no global */
+                print_errores_ambito(ERROR_FUNCION_NO_GLOBAL);
                 return 1;
             }
 
@@ -290,6 +296,7 @@ fn_name: TOK_FUNCTION tipo TOK_IDENTIFICADOR
             /* OPCION 1: Comprobar no cerrado */
             if (local_ht != NULL) {
                 /* TODO: Error ambito no cerrado (?) */
+                print_errores_ambito(ERROR_AMBITO_NO_CERRADO);
                 return 1;
             }
             local_ht = hash_table_create(TABLESIZE);
@@ -1010,7 +1017,11 @@ constante: constante_logica
                     $$.es_direccion = $1.es_direccion;
                     $$.valor_entero = $1.valor_entero;
                     
-                    /* TODO: Generar codigo */
+                    /* GENERACION */
+                    /* $1.valor_entero = 0 si false, 1 si true */
+                    sprintf(aux, "%d", $1.valor_entero);
+                    /* escribir_operando espera un char * como nombre */
+                    escribir_operando(out, aux, 0);
                     fprintf(out, ";R99:\t<constante> ::= <constante_logica>\n");
                 }
          | constante_entera 
@@ -1020,7 +1031,10 @@ constante: constante_logica
                     $$.es_direccion = $1.es_direccion;
                     $$.valor_entero = $1.valor_entero;
                     
-                    /* TODO: Generar codigo */
+                    /* GENERACION */
+                    sprintf(aux, "%d", $1.valor_entero);
+                    /* escribir_operando espera un char * como nombre */
+                    escribir_operando(out, aux, 0);
                     fprintf(out, ";R100:\t<constante> ::= <constante_entera>\n");
                 }
          ;
@@ -1032,7 +1046,7 @@ constante_logica: TOK_TRUE
                         $$.es_direccion = 0;
                         $$.valor_entero = 1;
                         
-                        /* TODO: Generar codigo */
+                        /* GENERACION */
                         fprintf(out, ";R102:\t<constante_logica> ::= true\n");
                     }
                 | TOK_FALSE 
@@ -1042,7 +1056,7 @@ constante_logica: TOK_TRUE
                         $$.es_direccion = 0;
                         $$.valor_entero = 0;
                         
-                        /* TODO: Generar codigo */
+                        /* GENERACION */
                         fprintf(out, ";R103:\t<constante_logica> ::= false\n");
                     }
                 ;
@@ -1054,7 +1068,7 @@ constante_entera: TOK_CONSTANTE_ENTERA
                     $$.es_direccion = 0;
                     $$.valor_entero = $1.valor_entero;
 
-                    /*TODO: Generar codigo */
+                    /* GENERACION */
                     fprintf(out, ";R104:\t<constante> ::= <numero>\n");
                 }
                 ;
@@ -1108,6 +1122,7 @@ idpf: TOK_IDENTIFICADOR
             /* Comprobamos que ambito sea local ? */
             if(actual_ht == global_ht) {
                 /*TODO: Error de ambito (?) */
+                print_errores_ambito(ERROR_AMBITO_ERRONEO);
                 return 1;
             }
             Data data;
@@ -1239,6 +1254,28 @@ void print_error_semantico(int tipo_error_semantico, char* nombre) {
     }
     printf("\n");
 }
+
+void print_errores_ambito(int tipo_error) {
+        switch(tipo_error) {
+
+            case ERROR_AMBITO_ERRONEO:          
+                printf("****Error de ambito en lin <%ld>: Error ambito erroneo.", yylin);
+                break;
+            
+            case ERROR_AMBITO_NO_ENCONTRADO:
+                printf("****Error de ambito en lin <%ld>: Error ambito no encontrado.", yylin);
+                break;
+
+            case ERROR_FUNCION_NO_GLOBAL:
+                printf("****Error de ambito en lin <%ld>: Error funcion no global.", yylin);
+                break;
+            case ERROR_AMBITO_NO_CERRADO:
+                printf("****Error de ambito en lin <%ld>: Error ambito no cerrado.", yylin);
+                break;
+        }
+        printf("\n");
+}
+
 
 /* 
 Comprueba nombre en ambitos abiertos 
