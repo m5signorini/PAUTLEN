@@ -268,6 +268,7 @@ Función para dejar en la cima de la pila la dirección efectiva de la variable 
 la posición posicion_variable_local (recuerda que ordenadas con origen 1)
 */
 
+void asignarDestinoEnPilaINV(FILE* fpasm, int es_variable);
 void asignarDestinoEnPila(FILE* fpasm, int es_variable);
 /*
 Función para poder asignar a un destino que no es una variable “global” (tipo _x) por
@@ -278,6 +279,7 @@ Se debe asumir que en la pila estará
 Primero (en la cima) lo que hay que asignar
 Debajo (se ha introducido en la pila antes) la dirección donde hay que asignar
 es_variable
+Al reves para la llamada a asignarDestinoEnPilaINV
 Es 1 si la expresión que se va a asignar es algo asimilable a una variable
 (identificador, o elemento de vector)
 Es 0 en caso contrario (constante u otro tipo de expresión)

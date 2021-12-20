@@ -773,6 +773,19 @@ void escribirVariableLocal(FILE* fpasm, int posicion_variable_local) {
   return;
 }
 
+void asignarDestinoEnPilaINV(FILE* fpasm, int es_variable) {
+  if (fpasm == NULL) return;
+  /* Obtiene el valor a asignar */
+  fprintf(fpasm, "\tpop dword eax\n");
+  if (es_variable == 1) {
+    fprintf(fpasm, "\tmov dword eax, [eax]\n");
+  }
+  /* Obtiene la dirección donde se tiene que asignar */
+  fprintf(fpasm, "\tpop dword ebx\n");
+  /* Realiza la asignación */
+  fprintf(fpasm, "\tmov dword [ebx], eax\n");
+}
+
 void asignarDestinoEnPila(FILE* fpasm, int es_variable) {
   if (fpasm == NULL) return;
   /* Obtiene la dirección donde se tiene que asignar */

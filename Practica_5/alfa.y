@@ -409,8 +409,10 @@ asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp
                     Data* search = simbolos_comprobar($1.nombre);
                     /* GENERACION */
                     /* No hay vectores en funciones */
-                    /* TODO: es_direccion siempre 0 (?) */
-                    asignarDestinoEnPila(out, $3.es_direccion);
+                    /* OBSERVACION: */
+                    /* Necesitamos invertir el orden de los elementos en pila */
+                    /* Por ello, hacemos lo siguiente */
+                    asignarDestinoEnPilaINV(out, $3.es_direccion);
                     fprintf(out, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
                 }
 
@@ -843,6 +845,7 @@ exp: exp TOK_MAS exp
             $$.es_direccion = 0;
             /* GENERACION */
             llamarFuncion(out, $1.nombre, search->num_params);
+            /* limpiar pila ya se llama desde llamarFuncion */
             fprintf(out, ";R88:\t<exp> ::= <identificador> ( <lista_expresiones> )\n");
         }
    ;
@@ -873,24 +876,28 @@ idf_llamada_funcion: TOK_IDENTIFICADOR
                         }
                    ;
 
-lista_expresiones: exp resto_lista_expresiones  
+lista_expresiones: argumento_a_pila resto_lista_expresiones  
                     {
                         num_parametros_llamada_actual += 1;
-                        /* Como estamos en una lista de parametros para una llamada a funcion... */
-                        operandoEnPilaAArgumento(out, $1.es_direccion);
                         fprintf(out, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n");
                     }
                  | /*vacio*/                    {fprintf(out, ";R90:\t<lista_expresiones> ::=\n");}
                  ;
 
-resto_lista_expresiones: TOK_COMA exp resto_lista_expresiones   
+resto_lista_expresiones: TOK_COMA argumento_a_pila resto_lista_expresiones   
                             {
                                 num_parametros_llamada_actual += 1;
-                                operandoEnPilaAArgumento(out, $2.es_direccion);
                                 fprintf(out, ";R91:\t<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>\n");
                             }
                        | /*vacio*/                              {fprintf(out, ";R92:\t<resto_lista_expresiones> ::=\n");}
                        ;
+
+argumento_a_pila: exp
+                    {
+                        /* Como estamos en una lista de parametros para una llamada a funcion... */
+                        operandoEnPilaAArgumento(out, $1.es_direccion);
+                    }
+                ;
 
 comparacion: exp TOK_IGUAL exp      
                 {
