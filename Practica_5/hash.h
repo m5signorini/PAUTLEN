@@ -1,21 +1,6 @@
 #ifndef HASH_H
 #define HASH_H
-
-#define VARIABLE 1
-#define PARAMETRO 2
-#define FUNCION 3
-
-#define BOOLEAN 1
-#define INT 2
-
-#define ESCALAR 1
-#define VECTOR 2
-
-#define MAX_TAMANIO_VECTOR 64
-
-#define KEY_LEN 100
-
-#define TABLESIZE 1024
+#include "types.h"
 
 typedef struct _Data {
     int elem_category;  /* variable, parámetro o función */

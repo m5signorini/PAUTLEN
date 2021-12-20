@@ -1,8 +1,6 @@
 
 #ifndef _ALFA_H
-
-/* Tenemos ya encuenta el EOS en la longitud */
-#define NOMBRE_LEN 100
+#include "types.h"
 
 #define ERROR_DEC_DUPLICADA             1
 #define ERROR_ACCESO_VAR_NO_DEC         2
