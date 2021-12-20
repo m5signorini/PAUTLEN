@@ -114,13 +114,14 @@ T_OUT	= out.txt
 
 # No se puede incluir T_ASM pues el wildcard no encuentra
 W_DIRS	= $(wildcard $(T_DIRS)/*/)
+W_ALFA	= $(foreach f, $(W_DIRS), $(f)$(T_ALFA))
 W_ASMS	= $(foreach f, $(W_DIRS), $(f)$(T_ASM))
 W_EXES	= $(foreach f, $(W_DIRS), $(f)$(T_EXE))
 W_OBJS	= $(foreach f, $(W_DIRS), $(f)$(T_OBJ))
 W_OUTS	= $(foreach f, $(W_DIRS), $(f)$(T_OUT))
 
 
-tests: pre_t_asm $(W_ASMS) pos_t_asm pre_t_exe $(W_EXES) pos_t_exe
+tests_comp: pre_t_asm $(W_ASMS) pos_t_asm pre_t_exe $(W_EXES) pos_t_exe
 
 pre_t_asm:
 	@echo $(FORMAT_INFO)
@@ -144,11 +145,12 @@ pos_t_exe:
 	@echo $(FORMAT_INFO)
 	@echo Finished checking correct execution
 	@echo -------------------------------- $(FORMAT_RESET)
+	@touch $(W_ALFA)
 
 # TEST ASM
 $(T_DIRS)/%/$(T_ASM): $(T_DIRS)/%/$(T_ALFA) $(EXE)
 	@echo
-	@echo $(FORMAT_PROC) :: Alfa compilation of: $(FORMAT_VAR) $< $(FORMAT_RESET)
+	@echo $(FORMAT_PROC):: Alfa compilation of: $(FORMAT_VAR) $< $(FORMAT_RESET)
 	./$(EXE) $< $@
 
 # TEST EXE
@@ -166,9 +168,9 @@ $(T_DIRS)/%/$(T_EXE): $(T_DIRS)/%/$(T_OBJ)
 	@echo "diff -bB $(T_DIRS)/$*/$(T_OUT) $(T_DIRS)/$*/$(T_CMP)"
 	@( \
 	diff -bB $(T_DIRS)/$*/$(T_OUT) $(T_DIRS)/$*/$(T_CMP) || \
-	(echo $(FORMAT_PROC):: Resultado: $(FORMAT_ERROR) ERROR  $(FORMAT_RESET); \
+	(echo $(FORMAT_PROC):: Result: $(FORMAT_ERROR) ERROR  $(FORMAT_RESET); \
 	exit 1; ) && \
-	echo $(FORMAT_PROC):: Resultado: $(FORMAT_OK) OK  $(FORMAT_RESET)) || true\
+	echo $(FORMAT_PROC):: Result: $(FORMAT_OK) OK  $(FORMAT_RESET)) || true\
 
 	@echo $(FORMAT_PROC):::::::::::::::::::::$(FORMAT_RESET)
 
@@ -178,14 +180,72 @@ $(T_DIRS)/%/$(T_OBJ): $(T_DIRS)/%/$(T_ASM)
 	@echo $(FORMAT_PROC):: Starting test: $(FORMAT_VAR) $* $(FORMAT_RESET)
 	nasm -g -o $@ $(ELF) $<
 
-# CLEAN
+#######################################
+# TESTS DE ANALISIS
+#######################################
+
+A_DIR_OK = io/test_ok
+A_DIR_ER = io/test_error
+
+A_NAME_OK	= $(wildcard $(A_DIR_OK)/*.alfa)
+A_NAME_ER	= $(wildcard $(A_DIR_ER)/*.alfa)
+
+A_OUT_OK	= $(foreach f, $(A_NAME_OK), $(f).asm)
+A_OUT_ER	= $(foreach f, $(A_NAME_ER), $(f).asm)
+
+
+tests_anal: $(EXE) pre_anal_error $(A_OUT_ER) pos_anal_error pre_anal_ok $(A_OUT_OK) pos_anal_ok
+
+pre_anal_error:
+	@echo $(FORMAT_INFO)
+	@echo Starting to verify expected semantic errors
+	@echo -------------------------------- $(FORMAT_RESET)
+
+pos_anal_error:
+	@echo $(FORMAT_INFO)
+	@echo Finished verifying expected semantic errors
+	@echo -------------------------------- $(FORMAT_RESET)
+
+pre_anal_ok:
+	@echo $(FORMAT_INFO)
+	@echo Starting to verify correct semantics
+	@echo -------------------------------- $(FORMAT_RESET)
+
+pos_anal_ok:
+	@echo $(FORMAT_INFO)
+	@echo Finished verifying correct semantics
+	@echo -------------------------------- $(FORMAT_RESET)
+	@touch $(A_NAME_OK) $(A_NAME_ER)
+
+$(A_DIR_OK)/%.asm: $(A_DIR_OK)/%
+	@echo
+	@echo $(FORMAT_PROC):: Alfa compilation of: $(FORMAT_VAR) $< $(FORMAT_RESET)
+	@echo $(FORMAT_PROC):: Expected: $(FORMAT_OK) OK $(FORMAT_RESET)
+	
+	@echo "./$(EXE) $< $@"
+	@(./$(EXE) $< $@ || (\
+	echo $(FORMAT_PROC):: Result: $(FORMAT_ERROR) ERROR $(FORMAT_RESET); \
+	exit 1 )) && \
+	echo $(FORMAT_PROC):: Result: $(FORMAT_OK) OK $(FORMAT_RESET) \
+	|| true
+
+$(A_DIR_ER)/%.asm: $(A_DIR_ER)/%
+	@echo
+	@echo $(FORMAT_PROC):: Alfa compilation of: $(FORMAT_VAR) $< $(FORMAT_RESET)
+	@echo $(FORMAT_PROC):: Expected: $(FORMAT_ERROR) ERROR $(FORMAT_RESET)
+
+	@echo "./$(EXE) $< $@"
+	@(./$(EXE) $< $@ || (\
+	echo $(FORMAT_PROC):: Result: $(FORMAT_ERROR) ERROR $(FORMAT_RESET); \
+	exit 1 )) && \
+	echo $(FORMAT_PROC):: Result: $(FORMAT_OK) OK $(FORMAT_RESET) \
+	|| true
+
+# CLEAN TESTS
 test_clean:
 	rm -rf $(W_ASMS)
 	rm -rf $(W_OBJS)
 	rm -rf $(W_EXES)
+	rm -rf $(A_OUT_OK) $(A_OUT_ER)
 
-turbo_test: clean test_clean tests
-
-#######################################
-# TESTS DE ANALISIS
-#######################################
+turbo_test: clean test_clean tests_comp

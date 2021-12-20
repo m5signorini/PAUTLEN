@@ -10,5 +10,7 @@ lex.yy.c
 alfa
 test.asm
 out.txt
+**/test_ok/*.asm
+**/test_error/*.asm
 
 !alfalib.o
