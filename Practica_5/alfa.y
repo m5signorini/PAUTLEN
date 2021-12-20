@@ -16,7 +16,8 @@ extern int error_long_id;   /* a 1 si el identificador es demasiado largo */
 extern int error_simbolo;   /* a 1 si se ha leído un símbolo no permitido */
 extern char * yytext;
 
-char aux[NOMBRE_LEN];
+/* No necesario declararlo globalmente, uso local */
+/* char aux[NOMBRE_LEN]; */
 
 extern HashTable* global_ht;
 extern HashTable* local_ht;
@@ -52,6 +53,7 @@ int etiq_no          = 0;
 int etiq_condicional = 0;
 int etiq_bucle       = 0;
 
+void print_errores_ambito(int tipo_error);
 void print_error_semantico(int tipo_error_semantico, char* nombre);
 Data* simbolos_comprobar(char* nombre);
 
@@ -1018,10 +1020,11 @@ constante: constante_logica
                     $$.valor_entero = $1.valor_entero;
                     
                     /* GENERACION */
+                    /* NO es necesario pues ya lo hacemos en exp y clase_vector */
                     /* $1.valor_entero = 0 si false, 1 si true */
-                    sprintf(aux, "%d", $1.valor_entero);
+                    /* sprintf(aux, "%d", $1.valor_entero);*/
                     /* escribir_operando espera un char * como nombre */
-                    escribir_operando(out, aux, 0);
+                    /* escribir_operando(out, aux, 0);*/
                     fprintf(out, ";R99:\t<constante> ::= <constante_logica>\n");
                 }
          | constante_entera 
@@ -1032,9 +1035,10 @@ constante: constante_logica
                     $$.valor_entero = $1.valor_entero;
                     
                     /* GENERACION */
-                    sprintf(aux, "%d", $1.valor_entero);
+                    /* NO es necesario pues ya lo hacemos en exp y clase_vector */
+                    /* sprintf(aux, "%d", $1.valor_entero);*/
                     /* escribir_operando espera un char * como nombre */
-                    escribir_operando(out, aux, 0);
+                    /* escribir_operando(out, aux, 0);*/
                     fprintf(out, ";R100:\t<constante> ::= <constante_entera>\n");
                 }
          ;
