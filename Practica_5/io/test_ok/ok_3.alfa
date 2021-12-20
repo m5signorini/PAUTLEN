@@ -1,6 +1,6 @@
 // Programa que comprueba la compilacion de expresiones aritmeticas
 
-// Comprobado con Valgrind: 2021-12-18 : 0 errores : Martin
+// Comprobado con Valgrind: 2021-12-18 : 0 errores : Pablo
 
 main {
   int x;
