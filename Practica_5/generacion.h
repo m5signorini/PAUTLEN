@@ -1,12 +1,7 @@
 #ifndef GENERACION_H
 #define GENERACION_H
 #include <stdio.h>
-
-/* Declaraciones de tipos de datos del compilador */
-#define ENTERO 0
-#define BOOLEANO 1
-
-#define MAX_ETIQUETAS 1000
+#include "types.h"
 
 /* OBSERVACIÓN GENERAL A TODAS LAS FUNCIONES:
 Todas ellas escriben el código NASM a un FILE* proporcionado como primer
@@ -145,6 +140,7 @@ Se deben insertar en la pila los argumentos necesarios, realizar la llamada
 (call) a la función de librería correspondiente y limpiar la pila.
 */
 void leer(FILE* fpasm, char* nombre, int tipo);
+void leer_ambito(FILE* fpasm, int tipo);
 void escribir(FILE* fpasm, int es_variable, int tipo);
 
 void ifthenelse_inicio(FILE * fpasm, int exp_es_variable, int etiqueta);

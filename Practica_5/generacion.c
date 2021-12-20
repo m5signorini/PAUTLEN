@@ -58,33 +58,33 @@ void escribir_inicio_main(FILE* fpasm) {
 
 void escribir_fin(FILE* fpasm) {
   if(fpasm == NULL) return;
-  // Etiquetas para salir en caso de error de ejecución
+  /* Etiquetas para salir en caso de error de ejecución */
 
   /* FIN CORRECTO */
   fprintf(fpasm, "  jmp near fin\n");
   fprintf(fpasm, "\n");
   /* DIVISION POR CERO : error_div_cero */
   fprintf(fpasm, "error_div_cero:\n");
-  fprintf(fpasm, "  push dword _msg_div_error\n");  // Guardamos direccion del mensaje a imprimir
+  fprintf(fpasm, "  push dword _msg_div_error\n");  /* Guardamos direccion del mensaje a imprimir */
   fprintf(fpasm, "  call print_string\n");
-  fprintf(fpasm, "  add esp, 4\n");             // Restauramos valor de esp antes de añadir el mensaje
+  fprintf(fpasm, "  add esp, 4\n");             /* Restauramos valor de esp antes de añadir el mensaje */
   fprintf(fpasm, "  call print_endofline\n");
   fprintf(fpasm, "  jmp near fin\n");
 
   /* Índice fuera de rango: fin_indice_fuera_rango */
   fprintf(fpasm, "\n");
   fprintf(fpasm, "fin_indice_fuera_rango:\n");
-  fprintf(fpasm, "  push dword _msg_index_range_error\n"); //Guardamos direccion del mensaje a imprimir
+  fprintf(fpasm, "  push dword _msg_index_range_error\n"); /* Guardamos direccion del mensaje a imprimir */
   fprintf(fpasm, "  call print_string\n");
-  fprintf(fpasm, "  add esp, 4\n");             // Restauramos valor de esp antes de añadir el mensaje
+  fprintf(fpasm, "  add esp, 4\n");             /* Restauramos valor de esp antes de añadir el mensaje */
   fprintf(fpasm, "  call print_endofline\n");
   fprintf(fpasm, "  jmp near fin\n");
 
-  // Recuperar puntero de pila a partir de __esp
+  /* Recuperar puntero de pila a partir de __esp */
   fprintf(fpasm, "\n");
   fprintf(fpasm, "fin:\n");
   fprintf(fpasm, "  mov esp, [__esp]\n");
-  fprintf(fpasm, "  ret\n");                    // Escribir ret final
+  fprintf(fpasm, "  ret\n");                    /* Escribir ret final */
   return;
 }
 
@@ -95,12 +95,12 @@ void escribir_fin(FILE* fpasm) {
 void escribir_operando(FILE* fpasm, char* nombre, int es_variable) {
   if(fpasm == NULL) return;
 
-  // Si es variable, lo obtenemos a partir del nombre
+  /* Si es variable, lo obtenemos a partir del nombre */
   if(es_variable == 1) {
     fprintf(fpasm, "  push dword _%s\n", nombre);
   }
   else {
-    // Notese que por ahora  si no es variable lo guardamos en un registro temporal
+    /* Notese que por ahora  si no es variable lo guardamos en un registro temporal */
     fprintf(fpasm, "  mov edx, %s\n", nombre);
     fprintf(fpasm, "  push dword edx\n");
   }
@@ -524,7 +524,7 @@ void mayor(FILE* fpasm, int es_variable1, int es_variable2, int etiqueta) {
 void escribir(FILE* fpasm, int es_variable, int tipo){
   if (fpasm == NULL) return;
 
-  // introduce la variable o el dato en la pila
+  /* introduce la variable o el dato en la pila */
   if (es_variable == 1) {
     fprintf(fpasm, "; introduce la variable en la pila\n");
     fprintf(fpasm, "  pop dword edx\n");
@@ -532,14 +532,14 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
   }
   fprintf(fpasm, "; si no es variable, el dato ya viene introducido en la pila\n");
 
-  // llama a la funcion de imprimir correspondiente
+  /* llama a la funcion de imprimir correspondiente */
   if (tipo == ENTERO) {
     fprintf(fpasm, "  call print_int\n");
   } else {
     fprintf(fpasm, "  call print_boolean\n");
   }
 
-  // restaura el puntero de pila (como hacer pop)
+  /* restaura el puntero de pila (como hacer pop) */
   fprintf(fpasm, "  add esp, 4\n");
   fprintf(fpasm, "  call print_endofline\n");
   return;
@@ -549,19 +549,37 @@ void escribir(FILE* fpasm, int es_variable, int tipo){
 void leer(FILE* fpasm, char* nombre, int tipo) {
   if (fpasm == NULL) return;
 
-  // introduce la dirección donde se lee en la pila
+  /* introduce la dirección donde se lee en la pila */
   fprintf(fpasm, " push dword _%s\n", nombre);
 
-  // llama a la funcion de leer correspondiente
+  /* llama a la funcion de leer correspondiente */
   if (tipo == ENTERO) {
     fprintf(fpasm, "  call scan_int\n");
   } else {
     fprintf(fpasm, "  call scan_boolean\n");
   }
 
-  // restaura el puntero de pila
+  /* restaura el puntero de pila */
   fprintf(fpasm, "  add esp, 4\n");
   return;
+}
+
+/*
+  En el caso de parámetros de función o variables globales calculamos previamente
+  la dirección con escribirParametro o escribirVariableLocal y luego se llama a
+  esta funcion que simplemente llama a scan
+*/
+void leer_ambito(FILE* fpasm, int tipo){
+  /* Si el identificador es de tipo ENTERO, llamamos a scan_int */
+  if(tipo == ENTERO)
+    fprintf(fpasm, "call scan_int\n");
+
+  /* Si el identificador es de tipo BOOLEANO, llamamos a scan_boolean */
+  else if (tipo == BOOLEANO)
+    fprintf(fpasm, "call scan_boolean\n");
+
+  /* Restauramos la pila */
+  fprintf(fpasm, "add esp, 4\n");
 }
 
 /****************************************************
@@ -595,9 +613,9 @@ void while_exp_pila (FILE * fpasm, int exp_es_variable, int etiqueta){
 
 void while_fin( FILE * fpasm, int etiqueta) {
   if (fpasm == NULL) return;
-  // Notese: A diferencia del do while, el while se comprueba la expresion
-  // antes de ejecutar el codigo interno, y despues de este es cuando
-  // se salta al comienzo del bucle
+  /* Notese: A diferencia del do while, el while se comprueba la expresion */
+  /* antes de ejecutar el codigo interno, y despues de este es cuando */
+  /* se salta al comienzo del bucle */
   fprintf(fpasm, "  jmp while_%d\n", etiqueta);
   fprintf(fpasm, "\n");
   fprintf(fpasm, "fin_while_%d:\n", etiqueta);
@@ -647,7 +665,7 @@ void ifthenelse_fin_then( FILE * fpasm, int etiqueta){
   if (fpasm == NULL) return;
 
   fprintf(fpasm, "; para saltarnos el else\n");
-  fprintf(fpasm, "  je fin_if_else_%d\n", etiqueta);
+  fprintf(fpasm, "  jmp fin_if_else_%d\n", etiqueta);
   fprintf(fpasm, "else_%d:\n", etiqueta);
   return;
 }
@@ -683,8 +701,8 @@ void escribir_elemento_vector(FILE * fpasm,char * nombre_vector,
   fprintf(fpasm, "  jg near fin_indice_fuera_rango\n");
 
   /* Calcula la dirección efectiva del elemento indexado */
-  // UNA OPCIÓN ES CALCULAR CON lea LA DIRECCIÓN EFECTIVA DEL ELEMENTO INDEXADO TRAS CALCULARLA
-  // DESPLAZANDO DESDE EL INICIO DEL VECTOR EL VALOR DEL INDICE
+  /* UNA OPCIÓN ES CALCULAR CON lea LA DIRECCIÓN EFECTIVA DEL ELEMENTO INDEXADO TRAS CALCULARLA */
+  /* DESPLAZANDO DESDE EL INICIO DEL VECTOR EL VALOR DEL INDICE */
   fprintf(fpasm, "  mov dword edx, _%s\n", nombre_vector);
   fprintf(fpasm, "  lea eax, [edx + eax*4]\n"); /* dirección del elemento indexado en eax */
   fprintf(fpasm, "  push dword eax\n"); /* dirección del elemento indexado en la cima de la pila */
@@ -697,15 +715,15 @@ void escribir_elemento_vector(FILE * fpasm,char * nombre_vector,
 
 void declararFuncion(FILE * fd_asm, char * nombre_funcion, int num_var_loc) {
   if (fd_asm == NULL) return;
-  // Escribir etiqueta
+  /* Escribir etiqueta */
   fprintf(fd_asm, "\n");
   fprintf(fd_asm, "_%s:\n", nombre_funcion);
 
-  // Preservar registros ebp y esp
+  /* Preservar registros ebp y esp */
   fprintf(fd_asm, "  push ebp\n");
   fprintf(fd_asm, "  mov ebp, esp\n");
 
-  // Reservar espacio para variables locales de la funcion en la pila
+  /* Reservar espacio para variables locales de la funcion en la pila */
   fprintf(fd_asm, "  sub esp, %d\n", 4*num_var_loc);
   return;
 }
@@ -731,13 +749,13 @@ void retornarFuncion(FILE * fd_asm, int es_variable) {
 
 void escribirParametro(FILE* fpasm, int pos_parametro, int num_total_parametros) {
   if(fpasm == NULL) return;
-  // Para obtener los parametros se hace uso del registro ebp, el cual
-  // apunta al ebp original, y ademas: ebp+4 = dir. ret. ; ebp+8 = primer argumento
-  // Para colocar el n-esimo parametro en la pila, calculamos:
+  /* Para obtener los parametros se hace uso del registro ebp, el cual */
+  /* apunta al ebp original, y ademas: ebp+4 = dir. ret. ; ebp+8 = primer argumento */
+  /* Para colocar el n-esimo parametro en la pila, calculamos: */
   int d_ebp;
   d_ebp = 4*( 1 + (num_total_parametros - pos_parametro));
 
-  // Cargamos el parametro pos_parametro-esimo en la pila
+  /* Cargamos el parametro pos_parametro-esimo en la pila */
   fprintf(fpasm, "  lea eax, [ebp + %d]\n", d_ebp);
   fprintf(fpasm, "  push dword eax\n");
   return;
