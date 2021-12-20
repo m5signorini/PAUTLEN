@@ -7,8 +7,8 @@
 //		de llamadas a funciones con vectores
 //	Salida:
 //		true
-//	Ultima ejecucion:
-//		-
+//	Ultima ejecucion correcta:
+//		2021-12-20 :: 14:46
 //*********************************
 main
 {
@@ -27,6 +27,6 @@ main
 	vector[2] = false;
 	
 	resultado = or (vector[0], vector [1], vector [2]);
-	printf resultado;	
+	printf resultado;
 	
 }

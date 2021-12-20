@@ -90,12 +90,15 @@ COL_BLINK	= \033[5m
 COL_GREEN	= \033[32m
 COL_YELLOW	= \033[33m
 COL_MAGENTA	= \033[35m
+COL_RED		= \033[31m
 
 FORMAT_INFO	= "$(COL_MAGENTA)"
 FORMAT_TITLE= "$(COL_MAGENTA)"
 FORMAT_PROC	= "$(COL_YELLOW)"
 FORMAT_VAR	= "$(COL_GREEN)"
 FORMAT_RESET= "$(COL_RESET)"
+FORMAT_OK	= "$(COL_GREEN)$(COL_BLINK)"
+FORMAT_ERROR= "$(COL_RED)$(COL_BLINK)"
 
 # Nombres de ficheros relativos a T_DIR
 # Usar el mismo en toda subcarpeta
@@ -106,6 +109,7 @@ T_ASM	= $(TO_TEST).asm
 T_OBJ	= $(TO_TEST).o
 T_EXE	= $(TO_TEST).exe
 T_CMP	= expected.txt
+T_INP	= input.txt
 T_OUT	= out.txt
 
 # No se puede incluir T_ASM pues el wildcard no encuentra
@@ -154,18 +158,24 @@ $(T_DIRS)/%/$(T_EXE): $(T_DIRS)/%/$(T_OBJ)
 	gcc $(MM) -o $@ $< alfalib.o
 
 	@echo $(FORMAT_PROC):: Execution of $(FORMAT_VAR) $@ $(FORMAT_RESET)
-	@./$@ > $(T_DIRS)/$*/$(T_OUT) || true
+
+	@(echo "" | cat $(wildcard $(T_DIRS)/$*/$(T_INP)) | ./$@ > $(T_DIRS)/$*/$(T_OUT))|| true
 
 	@echo $(FORMAT_PROC):: Verification of $(FORMAT_VAR) $@ $(FORMAT_RESET)
-	diff -bB $(T_DIRS)/$*/$(T_OUT) $(T_DIRS)/$*/$(T_CMP)
-	
-	@echo $(FORMAT_PROC)
-	@echo ::::::::::::::::$(FORMAT_RESET)
+
+	@echo "diff -bB $(T_DIRS)/$*/$(T_OUT) $(T_DIRS)/$*/$(T_CMP)"
+	@( \
+	diff -bB $(T_DIRS)/$*/$(T_OUT) $(T_DIRS)/$*/$(T_CMP) || \
+	(echo $(FORMAT_PROC):: Resultado: $(FORMAT_ERROR) ERROR  $(FORMAT_RESET); \
+	exit 1; ) && \
+	echo $(FORMAT_PROC):: Resultado: $(FORMAT_OK) OK  $(FORMAT_RESET)) || true\
+
+	@echo $(FORMAT_PROC):::::::::::::::::::::$(FORMAT_RESET)
 
 # Compilar o
 $(T_DIRS)/%/$(T_OBJ): $(T_DIRS)/%/$(T_ASM)
 	@echo
-	@echo $(FORMAT_PROC) :: Starting test: $(FORMAT_VAR) $* $(FORMAT_RESET)
+	@echo $(FORMAT_PROC):: Starting test: $(FORMAT_VAR) $* $(FORMAT_RESET)
 	nasm -g -o $@ $(ELF) $<
 
 # CLEAN
@@ -173,6 +183,8 @@ test_clean:
 	rm -rf $(W_ASMS)
 	rm -rf $(W_OBJS)
 	rm -rf $(W_EXES)
+
+turbo_test: clean test_clean tests
 
 #######################################
 # TESTS DE ANALISIS

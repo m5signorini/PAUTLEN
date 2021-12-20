@@ -1,0 +1,25 @@
+//*********************************
+//	FICHERO ALFA PARA TDD
+//*********************************
+//	Autores: Profesores PAUTLEN
+//	Objetivo:
+//		Comprobar correcta compilacion
+//		de bucles.
+//  Entrada:
+//      5
+//	Salida:
+//		120
+//	Ultima ejecucion correcta:
+//		2021-12-20 :: 16:21
+//*********************************
+main {
+	int x, y;
+	scanf x;
+	y = 1;
+	while((x>1)) {
+		y = x*y;
+		x = x-1;
+	}
+	printf y;
+
+}
