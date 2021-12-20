@@ -8,8 +8,8 @@
 CC = gcc
 CFLAGS = -ansi -g -c
 EXE = alfa
-INPUT = io/i.alfa
-OUTPREFIX = io/o
+INPUT = ../ejemplos_compilador/ejemplo_funciones_vectores/funciones_vectores.alfa
+OUTPREFIX = io/fv
 OUTPUT = $(OUTPREFIX).asm
 
 ELF = -f elf32
@@ -52,14 +52,15 @@ generacion.o: generacion.c generacion.h types.h
 	$(CC) $(CFLAGS) -c generacion.c
 
 # CLEAN
-clean:
-	rm -rf *.o
+clean: clear
 	rm -rf $(EXE)
-	rm -rf lex.yy.c
-	rm -rf y.tab.h y.tab.c y.output
 
 clear:
+	mv alfalib.o alfalib.o.keep
 	rm -rf *.o
+	mv alfalib.o.keep alfalib.o
+
+	rm -rf io/*.exe io/*.o io/*.asm
 	rm -rf lex.yy.c
 	rm -rf y.tab.h y.tab.c y.output
 
@@ -74,6 +75,6 @@ run:
 	./$(EXE) $(INPUT) $(OUTPUT)
 
 # COMPILACION DE ASM A EXE
-compile: $(OBJECT) $(OUTPUT)
+compile:
 	nasm -g -o $(OBJECT) $(ELF) $(OUTPUT)
 	gcc $(MM) -o $(COMPILED) $(OBJECT) alfalib.o
