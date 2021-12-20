@@ -141,6 +141,7 @@ pre_t_exe:
 	@echo Now checking correct execution
 	@echo -------------------------------- $(FORMAT_RESET)
 
+# Touch final para poder repetir tests sin cambios
 pos_t_exe:
 	@echo $(FORMAT_INFO)
 	@echo Finished checking correct execution
@@ -195,24 +196,25 @@ A_OUT_OK	= $(foreach f, $(A_NAME_OK), $(f).asm)
 A_OUT_ER	= $(foreach f, $(A_NAME_ER), $(f).asm)
 
 
-tests_anal: $(EXE) pre_anal_error $(A_OUT_ER) pos_anal_error pre_anal_ok $(A_OUT_OK) pos_anal_ok
+tests_anal: $(EXE) pre_a_error $(A_OUT_ER) pos_a_error pre_a_ok $(A_OUT_OK) pos_a_ok
 
-pre_anal_error:
+pre_a_error:
 	@echo $(FORMAT_INFO)
 	@echo Starting to verify expected semantic errors
 	@echo -------------------------------- $(FORMAT_RESET)
 
-pos_anal_error:
+pos_a_error:
 	@echo $(FORMAT_INFO)
 	@echo Finished verifying expected semantic errors
 	@echo -------------------------------- $(FORMAT_RESET)
 
-pre_anal_ok:
+pre_a_ok:
 	@echo $(FORMAT_INFO)
 	@echo Starting to verify correct semantics
 	@echo -------------------------------- $(FORMAT_RESET)
 
-pos_anal_ok:
+# Touch final para poder repetir tests sin cambios
+pos_a_ok:
 	@echo $(FORMAT_INFO)
 	@echo Finished verifying correct semantics
 	@echo -------------------------------- $(FORMAT_RESET)
@@ -243,14 +245,16 @@ $(A_DIR_ER)/%.asm: $(A_DIR_ER)/%
 	|| true
 
 # CLEAN TESTS
-test_clean:
+clean_tests:
 	rm -rf $(W_ASMS)
 	rm -rf $(W_OBJS)
 	rm -rf $(W_EXES)
 	rm -rf $(W_OUTS)
 	rm -rf $(A_OUT_OK) $(A_OUT_ER)
 
-turbo_test_comp: clean test_clean tests_comp
-turbo_test_anal: clean test_clean tests_anal
+clean_all: clean clean_tests
 
-turbo_tests: clean test_clean tests_anal tests_comp
+turbo_test_comp: clean_all tests_comp
+turbo_test_anal: clean_all tests_anal
+
+turbo_test_all: clean_all tests_anal tests_comp
