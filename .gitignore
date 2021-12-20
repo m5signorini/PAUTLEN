@@ -8,5 +8,7 @@ y.tab.h
 lex.yy.c
 
 alfa
+test.asm
+out.txt
 
 !alfalib.o

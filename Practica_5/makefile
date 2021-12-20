@@ -1,22 +1,22 @@
 
-#########
+#######################################
 # AUTORES:
 # Pablo Ruiz Revilla
 # César Ramírez Martínez
 # Martín Sánchez Signorini
-#########
+#######################################
 CC = gcc
 CFLAGS = -ansi -g -c
 EXE = alfa
-INPUT = ../ejemplos_compilador/ejemplo_funciones_vectores/funciones_vectores.alfa
-OUTPREFIX = io/fv
+OUTPREFIX = io/out
+INPUT = io/in.alfa
 OUTPUT = $(OUTPREFIX).asm
 
 ELF = -f elf32
 MM = -m32
 OBJECT = $(OUTPREFIX).o
 COMPILED = $(OUTPREFIX).exe
-#########
+#######################################
 
 all: $(EXE)
 
@@ -78,3 +78,102 @@ run:
 compile:
 	nasm -g -o $(OBJECT) $(ELF) $(OUTPUT)
 	gcc $(MM) -o $(COMPILED) $(OBJECT) alfalib.o
+
+
+#######################################
+# TESTS DE COMPILACION
+#######################################
+
+# Colores
+COL_RESET	= \033[0m
+COL_BLINK	= \033[5m
+COL_GREEN	= \033[32m
+COL_YELLOW	= \033[33m
+COL_MAGENTA	= \033[35m
+
+FORMAT_INFO	= "$(COL_MAGENTA)"
+FORMAT_TITLE= "$(COL_MAGENTA)"
+FORMAT_PROC	= "$(COL_YELLOW)"
+FORMAT_VAR	= "$(COL_GREEN)"
+FORMAT_RESET= "$(COL_RESET)"
+
+# Nombres de ficheros relativos a T_DIR
+# Usar el mismo en toda subcarpeta
+T_DIRS 	= io/test_compile
+TO_TEST = test
+T_ALFA 	= $(TO_TEST).alfa
+T_ASM	= $(TO_TEST).asm
+T_OBJ	= $(TO_TEST).o
+T_EXE	= $(TO_TEST).exe
+T_CMP	= expected.txt
+T_OUT	= out.txt
+
+# No se puede incluir T_ASM pues el wildcard no encuentra
+W_DIRS	= $(wildcard $(T_DIRS)/*/)
+W_ASMS	= $(foreach f, $(W_DIRS), $(f)$(T_ASM))
+W_EXES	= $(foreach f, $(W_DIRS), $(f)$(T_EXE))
+W_OBJS	= $(foreach f, $(W_DIRS), $(f)$(T_OBJ))
+W_OUTS	= $(foreach f, $(W_DIRS), $(f)$(T_OUT))
+
+
+tests: pre_t_asm $(W_ASMS) pos_t_asm pre_t_exe $(W_EXES) pos_t_exe
+
+pre_t_asm:
+	@echo $(FORMAT_INFO)
+	@echo Running all tests
+	@echo Starting ALFA compilation to ASM
+	@echo Now checking syntax and semantics
+	@echo -------------------------------- $(FORMAT_RESET)
+
+pos_t_asm:
+	@echo $(FORMAT_INFO)
+	@echo Finished checking syntax and semantics 
+	@echo -------------------------------- $(FORMAT_RESET)
+
+pre_t_exe:
+	@echo $(FORMAT_INFO)
+	@echo Starting ASM compilation to EXE
+	@echo Now checking correct execution
+	@echo -------------------------------- $(FORMAT_RESET)
+
+pos_t_exe:
+	@echo $(FORMAT_INFO)
+	@echo Finished checking correct execution
+	@echo -------------------------------- $(FORMAT_RESET)
+
+# TEST ASM
+$(T_DIRS)/%/$(T_ASM): $(T_DIRS)/%/$(T_ALFA) $(EXE)
+	@echo
+	@echo $(FORMAT_PROC) :: Alfa compilation of: $(FORMAT_VAR) $< $(FORMAT_RESET)
+	./$(EXE) $< $@
+
+# TEST EXE
+# Compilar y ejecutar exe
+$(T_DIRS)/%/$(T_EXE): $(T_DIRS)/%/$(T_OBJ)
+	@echo $(FORMAT_PROC):: ASM compilation of: $(FORMAT_VAR) $< $(FORMAT_RESET)
+	gcc $(MM) -o $@ $< alfalib.o
+
+	@echo $(FORMAT_PROC):: Execution of $(FORMAT_VAR) $@ $(FORMAT_RESET)
+	@./$@ > $(T_DIRS)/$*/$(T_OUT) || true
+
+	@echo $(FORMAT_PROC):: Verification of $(FORMAT_VAR) $@ $(FORMAT_RESET)
+	diff -bB $(T_DIRS)/$*/$(T_OUT) $(T_DIRS)/$*/$(T_CMP)
+	
+	@echo $(FORMAT_PROC)
+	@echo ::::::::::::::::$(FORMAT_RESET)
+
+# Compilar o
+$(T_DIRS)/%/$(T_OBJ): $(T_DIRS)/%/$(T_ASM)
+	@echo
+	@echo $(FORMAT_PROC) :: Starting test: $(FORMAT_VAR) $* $(FORMAT_RESET)
+	nasm -g -o $@ $(ELF) $<
+
+# CLEAN
+test_clean:
+	rm -rf $(W_ASMS)
+	rm -rf $(W_OBJS)
+	rm -rf $(W_EXES)
+
+#######################################
+# TESTS DE ANALISIS
+#######################################

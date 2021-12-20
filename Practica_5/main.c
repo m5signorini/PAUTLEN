@@ -18,6 +18,7 @@ HashTable* actual_ht = NULL;
 
 int main(int argc, char ** argv) {
     extern FILE * yyin;
+    int parse_result = 0;
 
     /* Error: Numero de parametros */
     if(argc < 3) {
@@ -48,7 +49,7 @@ int main(int argc, char ** argv) {
     }
     actual_ht = global_ht;
     
-    yyparse();
+    parse_result = yyparse();
 
     /* Liberar recursos */
     hash_table_destroy(local_ht);
@@ -59,6 +60,6 @@ int main(int argc, char ** argv) {
 
     fclose(yyin);
     fclose(out);
-    return 0;
+    return parse_result;
 }
 
