@@ -5,6 +5,7 @@
 #include <string.h>
 #include "hash.h"
 #include "alfa.h"
+#include "generacion.h"
 
 int yylex();
 void yyerror();
@@ -38,9 +39,16 @@ int num_parametros_llamada_actual = 0;
 int en_explist = 0;
 
 /* Para comprobar retornos de funciones */
-int en_cuerpo_funcion = 0;
 int num_retornos_actuales = 0;
 int tipo_retorno_esperado;
+
+/* ETIQUETAS */
+/* No repetibles, solo se emplean en un momento, conllevan en si el comienzo y fin */
+int etiq_comparacion = 0;
+int etiq_no          = 0;
+/* Repetibles, es necesario un mecanismo de recuperacion de etiquetas */
+int etiq_condicional = 0;
+int etiq_bucle       = 0;
 
 void print_error_semantico(int tipo_error_semantico, char* nombre);
 Data* simbolos_comprobar(char* nombre);
@@ -110,14 +118,62 @@ Data* simbolos_comprobar(char* nombre);
 %type <atributos> identificador
 %type <atributos> idf_llamada_funcion
 %type <atributos> fn_name
-%type <atributos> fn_declaration;
+%type <atributos> fn_declaration
 
+%type <atributos> bucle_exp
+%type <atributos> bucle_inicio
+%type <atributos> if_exp
+%type <atributos> if_else_exp
 %type <atributos> elemento_vector;
 
 %%
 /* Sección de reglas */
-programa: TOK_MAIN TOK_LLAVEIZQUIERDA declaraciones funciones sentencias TOK_LLAVEDERECHA {fprintf(out, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> }");}
+programa: TOK_MAIN TOK_LLAVEIZQUIERDA declaraciones escritura_TS funciones escritura_main sentencias TOK_LLAVEDERECHA 
+            {
+                escribir_fin(out);
+                fprintf(out, ";R1:\t<programa> ::= main { <declaraciones> <funciones> <sentencias> }");
+            }
         ;
+
+escritura_TS: /* vacio */
+                {
+                    /* GENERACION */
+                    escribir_subseccion_data(out);
+                    escribir_cabecera_bss(out);
+                    /* Volcado de la tabla de simbolos en bss */
+                    /* Usamos unicamente la tabla global (actual) */
+                    int hti = 0;
+                    int len = 0;
+                    Item* item = NULL;
+                    for (hti = 0; hti < global_ht->length; hti++) {
+                        item = global_ht->items[hti];
+                        if (item == NULL) {
+                            /* Vacio en la tabla */
+                            continue;
+                        }
+                        if (item->data.elem_category != VARIABLE) {
+                            /* Item no nulo lo declaramos solo si es variable */
+                            continue;
+                        }
+                        if (item->data.category == VECTOR) {
+                            len = item->data.size;
+                        }
+                        else {
+                            len = 1;
+                        }
+                        declarar_variable(out, item->key, item->data.datatype, len);
+                    }
+                    /* Segmento de codigo */
+                    escribir_segmento_codigo(out);
+                }
+            ;
+
+escritura_main: /* vacio */
+                {
+                    /* GENERACION */
+                    escribir_inicio_main(out);
+                }
+              ;
 
 declaraciones: declaracion                  {fprintf(out, ";R2:\t<declaraciones> ::= <declaracion>\n");}
              | declaracion declaraciones    {fprintf(out, ";R3:\t<declaraciones> ::= <declaracion> <declaraciones>\n");}
@@ -180,7 +236,6 @@ funcion : fn_declaration sentencias TOK_LLAVEDERECHA
             prev->num_params = num_parametros_actual;
             prev->num_loc_vars = num_variables_locales_actuales;
             /* Para retornos */
-            en_cuerpo_funcion = 0;
             if (num_retornos_actuales < 1) {
                 /* Error funcion sin retorno */
                 print_error_semantico(ERROR_FUNCION_SIN_RETORNO, $1.nombre);
@@ -205,8 +260,9 @@ fn_declaration : fn_name TOK_PARENTESISIZQUIERDO parametros_funcion TOK_PARENTES
             /* TODO: Solo es necesario actualizar parametros (?) */
             prev->num_loc_vars = num_variables_locales_actuales;
             strcpy($$.nombre, $1.nombre);
-            /* Para retornos */
-            en_cuerpo_funcion = 1;
+
+            /* GENERACION */
+            declararFuncion(out, $1.nombre, prev->num_loc_vars);
         }
         ;
 
@@ -315,7 +371,30 @@ asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp
                         print_error_semantico(ERROR_ASIGNACION, NULL);
                         return 1;
                     }
-                    /* TODO: Generar codigo */
+
+                    /* GENERACION */
+
+                    /* Si la variable es del ambito local: */
+                    if (actual_ht == global_ht) {
+                        /* Asignar para global*/
+                        asignar(out, $1.nombre, $3.es_direccion);
+                    }
+                    else {
+                        /* Asignar para local */
+                        if (hash_table_search(local_ht, $1.nombre) == NULL) {
+                            /* Entonces search esta en global */
+                            asignar(out, $1.nombre, $3.es_direccion);
+                        }
+                        else {
+                            /* Entonces search esta en local */
+                            if (search->elem_category == PARAMETRO) {
+                                escribirParametro(out, search->pos, num_parametros_actual);
+                            } else {
+                                escribirVariableLocal(out, search->pos_loc_var);   
+                            }
+                            asignarDestinoEnPila(out, $3.es_direccion);
+                        }
+                    }
                     fprintf(out, ";R43:\t<asignacion> ::= <identificador> = <exp>\n");
                 }
           | elemento_vector TOK_ASIGNACION exp   
@@ -326,6 +405,12 @@ asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp
                         print_error_semantico(ERROR_ASIGNACION, NULL);
                         return 1;
                     }
+                    /* Suponemos correcto por */
+                    Data* search = simbolos_comprobar($1.nombre);
+                    /* GENERACION */
+                    /* No hay vectores en funciones */
+                    /* TODO: es_direccion siempre 0 (?) */
+                    asignarDestinoEnPila(out, $3.es_direccion);
                     fprintf(out, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
                 }
 
@@ -358,24 +443,27 @@ elemento_vector: TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO
                         $$.tipo = search->datatype;
                         $$.es_direccion = 1;
 
-                        /* TODO: Generar codigo */
-                        /* RECUERDA: Comprobacion en tiempo de ejecucion del indice dentro del rango [0, length-1] */
+                        /* GENERACION */
+                        escribir_elemento_vector(out, $1.nombre, search->size, $3.es_direccion);
                         fprintf(out, ";R48:\t<elemento_vector> ::= <identificador> [ <exp> ]\n");
                     }
                ;
 
 condicional: if_exp TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA                                                            
                 {
+                    /* GENERACION */
+                    /* fin_si#      */
+                    ifthen_fin(out, $1.etiqueta);
                     fprintf(out, ";R50:\t<condicional> ::= if ( <exp> ) { <sentencias> }\n");
                 }
-           | if_exp TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA TOK_ELSE TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA    
+           | if_else_exp TOK_ELSE TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA    
                 {
+                    /* GENERACION */
+                    /* fin_sino#    */
+                    ifthenelse_fin(out, $1.etiqueta);
                     fprintf(out, ";R51:\t<condicional> ::= if ( <exp> ) { <sentencias> } else { <sentencias> }\n");
                 }
            ;
-
-bucle: bucle_exp TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA {fprintf(out, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> }\n");}
-     ;
 
 if_exp: TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO
             {
@@ -385,19 +473,66 @@ if_exp: TOK_IF TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO
                     print_error_semantico(ERROR_COND_CON_INT, NULL);
                     return 1;
                 }
+                /* Propagacion semantica */
+                $$.etiqueta = etiq_condicional;
+                etiq_condicional += 1;
+                /* GENERACION */
+                /* cmp 0        */
+                /* je fin_si#   */
+                ifthen_inicio(out, $3.es_direccion, $$.etiqueta);
             }
       ;
 
-bucle_exp: TOK_WHILE TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO
+if_else_exp: if_exp TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA 
+                {
+                    /* BIG TODO: */
+                    /* Cambiar if_exp para distinguir entre if-then-else y if-then                  */
+                    /* Habria que crear otra regla igual a if_exp pero eso seria conflictivo (?)    */
+                    /* Por ahora se abusa del codigo de generacion, pero funciona                   */
+
+                    /* Propagacion */
+                    $$.etiqueta = $1.etiqueta;
+
+                    /* GENERACION */
+                    /* jmp fin_sino#    */
+                    /* fin_si#          */
+                    ifthenelse_fin_then(out, $1.etiqueta);
+                    ifthen_fin(out, $1.etiqueta);
+                }
+           ;
+
+bucle: bucle_exp TOK_LLAVEIZQUIERDA sentencias TOK_LLAVEDERECHA 
+            {
+                /* GENERACION */
+                while_fin(out, $1.etiqueta);
+                fprintf(out, ";R52:\t<bucle> ::= while ( <exp> ) { <sentencias> }\n");
+            }
+     ;
+
+bucle_exp: bucle_inicio exp TOK_PARENTESISDERECHO
             {
                 /* Comprobacion semantica */
-                if ($3.tipo != BOOLEAN) {
+                if ($2.tipo != BOOLEAN) {
                     /* Error no boolean dentro de un condicional */
                     print_error_semantico(ERROR_BUCLE_CON_INT, NULL);
                     return 1;
                 }
+                /* Propagacion semantica */
+                $$.etiqueta = $1.etiqueta;
+                /* GENERACION */
+                while_exp_pila(out, $2.es_direccion, $1.etiqueta);
             }
          ;
+
+bucle_inicio: TOK_WHILE TOK_PARENTESISIZQUIERDO 
+                {
+                    /* Propagacion semantica */
+                    $$.etiqueta = etiq_bucle;
+                    etiq_bucle += 1;
+                    /* GENERACION */
+                    while_inicio(out, $$.etiqueta);
+                }
+            ;
 
 lectura: TOK_SCANF TOK_IDENTIFICADOR    
             {
@@ -419,7 +554,28 @@ lectura: TOK_SCANF TOK_IDENTIFICADOR
                     print_error_semantico(ERROR_ASIGNACION, NULL);
                     return 1;
                 }
-                /* TODO: Generar codigo */
+                /* GENERACION */
+                /* Incluimos la posibilidad de leer desde el ambito local */
+                if (actual_ht == global_ht) {
+                    /* En ambito global usamos nombre directamente */
+                    leer(out, $2.nombre, search->datatype);
+                }
+                else {
+                    /* En ambito local la variable puede ser global o no */
+                    if (hash_table_search(local_ht, $2.nombre) == NULL) {
+                            /* Entonces search esta en global */
+                            leer(out, $2.nombre, search->datatype);
+                        }
+                    else {
+                        /* Entonces search esta en local */
+                        if (search->elem_category == PARAMETRO) {
+                            escribirParametro(out, search->pos, num_parametros_actual);
+                        } else {
+                            escribirVariableLocal(out, search->pos_loc_var);   
+                        }
+                        leer_ambito(out, search->datatype);
+                    }
+                }
                 fprintf(out, ";R54:\t<lectura> ::= scanf <identificador>\n");
             }
        ;
@@ -428,7 +584,8 @@ escritura: TOK_PRINTF exp
             {
                 /* Comprobacion semantica */
                 /* No hay comprobaciones semanticas */
-                /* TODO: Generar codigo */
+                /* GENERACION */
+                escribir(out, $2.es_direccion, $2.tipo);
                 fprintf(out, ";R56:\t<escritura> ::= printf <exp>\n");
             }
          ;
@@ -437,7 +594,7 @@ retorno_funcion: TOK_RETURN exp
                     {
                         /* Comprobacion semantica */
                         /* Presente solo en cuerpos de funcion */
-                        if (en_cuerpo_funcion != 1) {
+                        if (actual_ht == global_ht) {
                             /* Error retorno fuera de funcion */
                             print_error_semantico(ERROR_RETORNO_FUERA_FUNCION, NULL);
                             return 1;
@@ -449,6 +606,8 @@ retorno_funcion: TOK_RETURN exp
                             return 1;
                         }
                         num_retornos_actuales += 1;
+                        /* GENERACION */
+                        retornarFuncion(out, $2.es_direccion);
                         fprintf(out, ";R61:\t<retorno_funcion> ::= return <exp>\n");
                     }
                ;
@@ -465,9 +624,8 @@ exp: exp TOK_MAS exp
             /* NO es direccion pues es la suma de cosas es decir no es una variable (x+x no es direccion)*/
             $$.es_direccion = 0;
 
-            /* TODO: Generar codigo */
-
-
+            /* GENERACION */
+            sumar(out, $1.es_direccion, $3.es_direccion);
             fprintf(out, ";R72:\t<exp> ::= <exp> + <exp>\n");
         }
    | exp TOK_MENOS exp                                  
@@ -481,7 +639,8 @@ exp: exp TOK_MAS exp
             $$.tipo = INT;
             $$.es_direccion = 0;
 
-            /* TODO: Generar codigo */
+            /* GENERACION */
+            restar(out, $1.es_direccion, $3.es_direccion);
             fprintf(out, ";R73:\t<exp> ::= <exp> - <exp>\n");
         }
    | exp TOK_DIVISION exp                               
@@ -495,7 +654,8 @@ exp: exp TOK_MAS exp
             $$.tipo = INT;
             $$.es_direccion = 0;
 
-            /*TODO: Generar codigo */
+            /* GENERACION */
+            dividir(out, $1.es_direccion, $3.es_direccion);
             fprintf(out, ";R74:\t<exp> ::= <exp> / <exp>\n");
         }
    | exp TOK_ASTERISCO exp                              
@@ -509,7 +669,8 @@ exp: exp TOK_MAS exp
             $$.tipo = INT;
             $$.es_direccion = 0;
 
-            /*TODO: Generar codigo */
+            /* GENERACION */
+            multiplicar(out, $1.es_direccion, $3.es_direccion);
             fprintf(out, ";R75:\t<exp> ::= <exp> * <exp>\n");
         }
    | TOK_MENOS exp                                      
@@ -523,7 +684,8 @@ exp: exp TOK_MAS exp
             $$.tipo = INT;
             $$.es_direccion = 0;
 
-            /*TODO: Generar codigo */
+            /* GENERACION */
+            cambiar_signo(out, $2.es_direccion);
             fprintf(out, ";R76:\t<exp> ::= - <exp>\n");
         }
    | exp TOK_AND exp                                    
@@ -537,7 +699,8 @@ exp: exp TOK_MAS exp
             $$.tipo = BOOLEAN;
             $$.es_direccion = 0;
 
-            /*TODO: Generar codigo */
+            /* GENERACION */
+            y(out, $1.es_direccion, $3.es_direccion);
             fprintf(out, ";R77:\t<exp> ::= <exp> && <exp>\n");
         }
    | exp TOK_OR exp                                     
@@ -551,7 +714,8 @@ exp: exp TOK_MAS exp
             $$.tipo = BOOLEAN;
             $$.es_direccion = 0;
 
-            /*TODO: Generar codigo */
+            /* GENERACION */
+            o(out, $1.es_direccion, $3.es_direccion);
             fprintf(out, ";R78:\t<exp> ::= <exp> || <exp>\n");
         }
    | TOK_NOT exp %prec PREC_MINUS                       
@@ -565,7 +729,10 @@ exp: exp TOK_MAS exp
             $$.tipo = BOOLEAN;
             $$.es_direccion = 0;
 
-            /*TODO: Generar codigo */
+            /* GENERACION */
+            /* ETIQUETA */
+            no(out, $2.es_direccion, etiq_no);
+            etiq_no += 1;
             fprintf(out, ";R79:\t<exp> ::= ! <exp>\n");
         }
    | TOK_IDENTIFICADOR                                  
@@ -593,6 +760,26 @@ exp: exp TOK_MAS exp
             $$.tipo = search->datatype;
             $$.es_direccion = 1;
 
+            /* GENERACION */
+            if (actual_ht == global_ht) {
+                /* Identificador solo puede ser global */
+                escribir_operando(out, $1.nombre, 1);
+            }
+            else {
+                /* En ambito local la variable puede ser global o no */
+                if (hash_table_search(local_ht, $1.nombre) == NULL) {
+                    /* Entonces search esta en global */
+                    escribir_operando(out, $1.nombre, 1);
+                }
+                else {
+                    /* Entonces search esta en local */
+                    if (search->elem_category == PARAMETRO) {
+                        escribirParametro(out, search->pos, num_parametros_actual);
+                    } else {
+                        escribirVariableLocal(out, search->pos_loc_var);   
+                    }
+                }
+            }
             fprintf(out, ";R80:\t<exp> ::= <identificador>\n");
         }
    | constante                                          
@@ -600,6 +787,22 @@ exp: exp TOK_MAS exp
             /* Propagacion semantica */
             $$.tipo = $1.tipo;
             $$.es_direccion = $1.es_direccion;
+            char val[MAX_INT_STR_LEN];
+
+            if ($1.tipo == BOOLEAN) {
+                if ($1.valor_entero == 1) {
+                    /* TRUE */
+                    escribir_operando(out, "1", $1.es_direccion);
+                }
+                else {
+                    /* FALSE */
+                    escribir_operando(out, "0", $1.es_direccion);
+                }
+            }
+            else {
+                sprintf(val, "%d", $1.valor_entero);
+                escribir_operando(out, val, $1.es_direccion);
+            }
             fprintf(out, ";R81:\t<exp> ::= <constante>\n");
         }
    | TOK_PARENTESISIZQUIERDO exp TOK_PARENTESISDERECHO  
@@ -638,6 +841,8 @@ exp: exp TOK_MAS exp
             /* Propagacion semantica */
             $$.tipo = search->datatype;
             $$.es_direccion = 0;
+            /* GENERACION */
+            llamarFuncion(out, $1.nombre, search->num_params);
             fprintf(out, ";R88:\t<exp> ::= <identificador> ( <lista_expresiones> )\n");
         }
    ;
@@ -671,6 +876,8 @@ idf_llamada_funcion: TOK_IDENTIFICADOR
 lista_expresiones: exp resto_lista_expresiones  
                     {
                         num_parametros_llamada_actual += 1;
+                        /* Como estamos en una lista de parametros para una llamada a funcion... */
+                        operandoEnPilaAArgumento(out, $1.es_direccion);
                         fprintf(out, ";R89:\t<lista_expresiones> ::= <exp> <resto_lista_expresiones>\n");
                     }
                  | /*vacio*/                    {fprintf(out, ";R90:\t<lista_expresiones> ::=\n");}
@@ -679,6 +886,7 @@ lista_expresiones: exp resto_lista_expresiones
 resto_lista_expresiones: TOK_COMA exp resto_lista_expresiones   
                             {
                                 num_parametros_llamada_actual += 1;
+                                operandoEnPilaAArgumento(out, $2.es_direccion);
                                 fprintf(out, ";R91:\t<resto_lista_expresiones> ::= , <exp> <resto_lista_expresiones>\n");
                             }
                        | /*vacio*/                              {fprintf(out, ";R92:\t<resto_lista_expresiones> ::=\n");}
@@ -695,7 +903,10 @@ comparacion: exp TOK_IGUAL exp
                     $$.tipo = BOOLEAN;
                     $$.es_direccion = 0;
 
-                    /*TODO: Generar codigo */
+                    /* GENERACION */
+                    /* ETIQUETAS */
+                    igual(out, $1.es_direccion, $3.es_direccion, etiq_comparacion);
+                    etiq_comparacion += 1;
                     fprintf(out, ";R93:\t<comparacion> ::= <exp> == <exp>\n");
                 }
            | exp TOK_DISTINTO exp   
@@ -709,7 +920,10 @@ comparacion: exp TOK_IGUAL exp
                     $$.tipo = BOOLEAN;
                     $$.es_direccion = 0;
 
-                    /*TODO: Generar codigo */
+                    /* GENERACION */
+                    /* ETIQUETAS */
+                    distinto(out, $1.es_direccion, $3.es_direccion, etiq_comparacion);
+                    etiq_comparacion += 1;
                     fprintf(out, ";R94:\t<comparacion> ::= <exp> != <exp>\n");
                 }
            | exp TOK_MENORIGUAL exp 
@@ -723,7 +937,10 @@ comparacion: exp TOK_IGUAL exp
                     $$.tipo = BOOLEAN;
                     $$.es_direccion = 0;
 
-                    /*TODO: Generar codigo */
+                    /* GENERACION */
+                    /* ETIQUETAS */
+                    menor_igual(out, $1.es_direccion, $3.es_direccion, etiq_comparacion);
+                    etiq_comparacion += 1;
                     fprintf(out, ";R95:\t<comparacion> ::= <exp> <= <exp>\n");
                 }
            | exp TOK_MAYORIGUAL exp 
@@ -737,7 +954,10 @@ comparacion: exp TOK_IGUAL exp
                     $$.tipo = BOOLEAN;
                     $$.es_direccion = 0;
 
-                    /*TODO: Generar codigo */
+                    /* GENERACION */
+                    /* ETIQUETAS */
+                    mayor_igual(out, $1.es_direccion, $3.es_direccion, etiq_comparacion);
+                    etiq_comparacion += 1;
                     fprintf(out, ";R96:\t<comparacion> ::= <exp> >= <exp>\n");
                 }
            | exp TOK_MENOR exp      
@@ -751,7 +971,10 @@ comparacion: exp TOK_IGUAL exp
                     $$.tipo = BOOLEAN;
                     $$.es_direccion = 0;
 
-                    /*TODO: Generar codigo */
+                    /* GENERACION */
+                    /* ETIQUETAS */
+                    menor(out, $1.es_direccion, $3.es_direccion, etiq_comparacion);
+                    etiq_comparacion += 1;
                     fprintf(out, ";R97:\t<comparacion> ::= <exp> < <exp>\n");
                 }
            | exp TOK_MAYOR exp      
@@ -765,7 +988,10 @@ comparacion: exp TOK_IGUAL exp
                     $$.tipo = BOOLEAN;
                     $$.es_direccion = 0;
 
-                    /*TODO: Generar codigo */
+                    /* GENERACION */
+                    /* ETIQUETAS */
+                    mayor(out, $1.es_direccion, $3.es_direccion, etiq_comparacion);
+                    etiq_comparacion += 1;
                     fprintf(out, ";R98:\t<comparacion> ::= <exp> > <exp>\n");
                 }
            ;
@@ -775,6 +1001,7 @@ constante: constante_logica
                     /* Comprobacion semantica */
                     $$.tipo = $1.tipo;
                     $$.es_direccion = $1.es_direccion;
+                    $$.valor_entero = $1.valor_entero;
                     
                     /* TODO: Generar codigo */
                     fprintf(out, ";R99:\t<constante> ::= <constante_logica>\n");
@@ -784,6 +1011,7 @@ constante: constante_logica
                     /* Comprobacion semantica */
                     $$.tipo = $1.tipo;
                     $$.es_direccion = $1.es_direccion;
+                    $$.valor_entero = $1.valor_entero;
                     
                     /* TODO: Generar codigo */
                     fprintf(out, ";R100:\t<constante> ::= <constante_entera>\n");
@@ -795,6 +1023,7 @@ constante_logica: TOK_TRUE
                         /* Comprobacion semantica */
                         $$.tipo = BOOLEAN;
                         $$.es_direccion = 0;
+                        $$.valor_entero = 1;
                         
                         /* TODO: Generar codigo */
                         fprintf(out, ";R102:\t<constante_logica> ::= true\n");
@@ -804,6 +1033,7 @@ constante_logica: TOK_TRUE
                         /* Comprobacion semantica */
                         $$.tipo = BOOLEAN;
                         $$.es_direccion = 0;
+                        $$.valor_entero = 0;
                         
                         /* TODO: Generar codigo */
                         fprintf(out, ";R103:\t<constante_logica> ::= false\n");
@@ -815,12 +1045,9 @@ constante_entera: TOK_CONSTANTE_ENTERA
                     /* Comprobacion semantica */
                     $$.tipo = INT;
                     $$.es_direccion = 0;
-
-                    /* Paso de valor */
                     $$.valor_entero = $1.valor_entero;
 
                     /*TODO: Generar codigo */
-
                     fprintf(out, ";R104:\t<constante> ::= <numero>\n");
                 }
                 ;
@@ -873,7 +1100,7 @@ idpf: TOK_IDENTIFICADOR
         {
             /* Comprobamos que ambito sea local ? */
             if(actual_ht == global_ht) {
-                /*TODO: Error*/
+                /*TODO: Error de ambito (?) */
                 return 1;
             }
             Data data;
