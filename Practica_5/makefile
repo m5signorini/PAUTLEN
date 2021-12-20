@@ -8,8 +8,13 @@
 CC = gcc
 CFLAGS = -ansi -g -c
 EXE = alfa
+
+# MODIFICAR PARA run
+####################
 OUTPREFIX = io/out
 INPUT = io/in.alfa
+####################
+
 OUTPUT = $(OUTPREFIX).asm
 
 ELF = -f elf32
@@ -68,10 +73,10 @@ clear:
 
 # Usar --show-leak-kinds=all para comprobar que los errores son solo
 # debidos a flex/bison reservando memoria para buffers
-valgrind:
+valgrind: $(EXE)
 	valgrind --leak-check=full ./$(EXE) $(INPUT) $(OUTPUT)
 
-run:
+run: $(EXE)
 	./$(EXE) $(INPUT) $(OUTPUT)
 
 # COMPILACION DE ASM A EXE
@@ -258,3 +263,17 @@ turbo_test_comp: clean_all tests_comp
 turbo_test_anal: clean_all tests_anal
 
 turbo_test_all: clean_all tests_anal tests_comp
+
+#####################
+# ENTREGA
+#####################
+FOLD_ACTUAL	= Practica_5
+ZIPNAME	= Ramirez_Ruiz_Sanchez_sintactico
+
+# Ejecutar desde FOLD_ACTUAL (!!!)
+# Renombrar
+gen_zip:
+	cd .. ; zip -r $(FOLD_ACTUAL)/$(ZIPNAME).zip $(FOLD_ACTUAL)
+
+clean_zip:
+	rm -rf $(ZIPNAME).zip
