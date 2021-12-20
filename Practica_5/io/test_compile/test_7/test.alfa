@@ -1,0 +1,89 @@
+//*********************************
+//	FICHERO ALFA PARA TDD
+//*********************************
+//	Autores: Martin Sanchez
+//	Objetivo:
+//		Comprobar correcta compilacion
+//		de condicionales multiples
+//  Entrada:
+//      1
+//      0
+//      1
+//      -1
+//	Salida:
+//		1
+//      2
+//      true
+//      false
+//      true
+//      false
+//      4
+//      5
+//  Observacion:
+//      Para usar booleans como input
+//      por favor, asegurese que son
+//      0 o 1, para false y true
+//      respectivamente.
+//
+//      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//      Usar "true" o "false" provoca
+//      errores inesperados
+//      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
+//	Ultima ejecucion correcta:
+//		2021-12-20 :: 22:50
+//*********************************
+
+main
+{
+    int x, y;
+    boolean b, c;
+
+    function boolean funcionBoolean(boolean a1; boolean a2) {
+        int x, y;
+        boolean b,c;
+
+        x = 1;
+        printf x;
+
+        y = 2;
+        printf y;
+
+        //b = true;
+        //c = false;
+        scanf b;
+        scanf c;
+        // Imprime true (a1 = true)
+        printf (a1 && b);
+        // Devuelve false (a2 = false)
+        return (a2 || c);
+    }
+
+    function int funcionEntera(int a1; int a2) {
+        int x, y;
+        boolean b,c;
+
+        b = true;
+        printf b;
+
+        c = false;
+        printf c;
+
+        x = 1;
+        y = -1;
+        //scanf x;
+        //scanf y;
+        // Imprime 4 (a1 = 5)
+        printf (a1 - x);
+        // Devuelve 5 (a2 = -5)
+        return (a2 * y);
+    }
+
+    x = 5;
+    y = -5;
+    b = true;
+    c = false;
+
+    printf funcionBoolean(b, c);
+    printf funcionEntera(x, y);
+}

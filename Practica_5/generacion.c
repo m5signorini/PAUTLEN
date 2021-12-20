@@ -550,7 +550,7 @@ void leer(FILE* fpasm, char* nombre, int tipo) {
   if (fpasm == NULL) return;
 
   /* introduce la dirección donde se lee en la pila */
-  fprintf(fpasm, " push dword _%s\n", nombre);
+  fprintf(fpasm, "\tpush dword _%s\n", nombre);
 
   /* llama a la funcion de leer correspondiente */
   if (tipo == ENTERO) {
@@ -570,16 +570,20 @@ void leer(FILE* fpasm, char* nombre, int tipo) {
   esta funcion que simplemente llama a scan
 */
 void leer_ambito(FILE* fpasm, int tipo){
-  /* Si el identificador es de tipo ENTERO, llamamos a scan_int */
-  if(tipo == ENTERO)
-    fprintf(fpasm, "call scan_int\n");
+  if (fpasm == NULL) return;
 
-  /* Si el identificador es de tipo BOOLEANO, llamamos a scan_boolean */
-  else if (tipo == BOOLEANO)
-    fprintf(fpasm, "call scan_boolean\n");
+  /* no introduce en la pila pues ya deberia estar */
+  /* llama a la funcion de leer correspondiente */
+  if(tipo == ENTERO) {
+    fprintf(fpasm, "\tcall scan_int\n");
+  }
+  else {
+    fprintf(fpasm, "\tcall scan_boolean\n");
+  }
 
-  /* Restauramos la pila */
-  fprintf(fpasm, "add esp, 4\n");
+  /* restaura el puntero de pila */
+  fprintf(fpasm, "\tadd esp, 4\n");
+  return;
 }
 
 /****************************************************

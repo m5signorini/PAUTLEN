@@ -161,6 +161,7 @@ $(T_DIRS)/%/$(T_EXE): $(T_DIRS)/%/$(T_OBJ)
 
 	@echo $(FORMAT_PROC):: Execution of $(FORMAT_VAR) $@ $(FORMAT_RESET)
 
+	@echo "$(foreach f, $(wildcard $(T_DIRS)/$*/$(T_INP)),cat $(f) |\n)./$@ > $(T_DIRS)/$*/$(T_OUT)"
 	@(echo "" | cat $(wildcard $(T_DIRS)/$*/$(T_INP)) | ./$@ > $(T_DIRS)/$*/$(T_OUT))|| true
 
 	@echo $(FORMAT_PROC):: Verification of $(FORMAT_VAR) $@ $(FORMAT_RESET)
@@ -246,6 +247,10 @@ test_clean:
 	rm -rf $(W_ASMS)
 	rm -rf $(W_OBJS)
 	rm -rf $(W_EXES)
+	rm -rf $(W_OUTS)
 	rm -rf $(A_OUT_OK) $(A_OUT_ER)
 
-turbo_test: clean test_clean tests_comp
+turbo_test_comp: clean test_clean tests_comp
+turbo_test_anal: clean test_clean tests_anal
+
+turbo_tests: clean test_clean tests_anal tests_comp

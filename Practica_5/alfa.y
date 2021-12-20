@@ -574,9 +574,9 @@ lectura: TOK_SCANF TOK_IDENTIFICADOR
                 else {
                     /* En ambito local la variable puede ser global o no */
                     if (hash_table_search(local_ht, $2.nombre) == NULL) {
-                            /* Entonces search esta en global */
-                            leer(out, $2.nombre, search->datatype);
-                        }
+                        /* Entonces search esta en global */
+                        leer(out, $2.nombre, search->datatype);
+                    }
                     else {
                         /* Entonces search esta en local */
                         if (search->elem_category == PARAMETRO) {
