@@ -1,0 +1,48 @@
+//*********************************
+//	FICHERO ALFA PARA TDD
+//*********************************
+//	Autores: Martin Sanchez
+//	Objetivo:
+//		Comprobar correcta compilacion
+//		de divisiones negativas
+//  Entrada:
+//	Salida:
+//      -1
+//      -2
+//      2
+//      -2
+//      -2
+//      -2
+//      1
+//	Ultima ejecucion correcta:
+//		2022-01-09 :: 23:21
+//*********************************
+
+main
+{
+    int x, y;
+
+    function int dividir(int a1; int a2) {
+        int x, y;
+
+        x = a1 / a2;
+        y = -a1 / -a2;
+
+        printf x;
+        printf y;
+
+        // x = -2
+        // y = -2
+        return (-x/-y);
+    }
+
+    x = 5/-5;
+    y = --20/-10;
+
+    printf x;       //-1
+    printf y;       //-2
+    printf -y/-x;   //2
+    printf y/-x;    //-2
+
+    printf dividir(-20, 10);
+}

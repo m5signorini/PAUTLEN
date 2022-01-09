@@ -218,7 +218,8 @@ void dividir(FILE* fpasm, int es_variable_1, int es_variable_2){
     fprintf(fpasm, "\tmov dword eax, [eax]\n");
   }
   
-  fprintf(fpasm, "\tmov edx, 0\n");
+  /* fprintf(fpasm, "\tmov edx, 0\n"); */
+  fprintf(fpasm, "\tcdq\n");
 
   fprintf(fpasm, "; realizar la division y dejar el resultado en eax \n");
   fprintf(fpasm, "\tidiv ecx\n");
