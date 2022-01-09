@@ -1,0 +1,90 @@
+//*********************************
+//	FICHERO ALFA PARA TDD
+//*********************************
+//	Autores: Martin Sanchez
+//	Objetivo:
+//		Comprobar correcta compilacion
+//		de operaciones a && b || c
+//  Entrada:
+//	Salida:
+//      true
+//      false
+//      true
+//      false
+//      true
+//      false
+//      true
+//      false
+//      false
+//      false
+//      false
+//      false
+//      1
+//      2
+//      3
+//      4
+//      6
+//      7
+//      true
+//      false
+//      false
+//	Ultima ejecucion correcta:
+//		2022-01-10 :: 00:07
+//*********************************
+
+main
+{
+    boolean a, b, c, d;
+
+    function boolean operar(boolean x; boolean y; boolean z) {
+        return x || y && z;
+    }
+
+    a = true;
+    b = false;
+    c = true;
+    d = false;
+
+    // suponemos izq -> der:
+
+    printf a || a && c;     // true
+    printf b || b && d;     // false
+    printf a || b && c;     // true
+    printf a || b && d;     // false
+    printf b || a && c;     // true
+    printf a || a && d;     // false
+
+    printf !a || a && c;     // true
+    printf !b || !b && d;     // false
+    printf !a || b && c;     // false
+    printf a || !b && d;     // false
+    printf b || !a && c;     // false
+    printf a || !a && d;     // false
+
+    if (b || a && c) {
+        printf 1;
+    }
+    if (b || c && a || d) {
+        printf 2;
+    }
+    if ((1<2) || (2<1) && (1<2) || (2<1) && (1<2)) {
+        printf 3;
+    }
+    if (a && b || a) {
+        printf 4;
+    }
+    if (a || b || b || b || b || d || b && b || b ) {
+        printf 5;       // No entra
+    }
+    if (b || b || b || b || b || b || a && c || b ) {
+        printf 6;
+    }
+    if (a || b || b || b || b || d || b && b || a ) {
+        printf 7;
+    }
+
+    // Funciones
+    printf operar(a, b, c);                 // true
+    printf operar(a, b, d);                 // false
+    printf operar(true, true, false);       // false
+}
