@@ -1,0 +1,16 @@
+main
+{
+    int a, b, c;
+
+    a = 1;
+    b = 2;
+    c = 3;
+
+    compare a with b{
+        less
+        equal
+            printf 2;
+        greater
+            printf 3;
+    }
+}

@@ -1,0 +1,35 @@
+main
+{
+    int a, b, c;
+
+    a = 1;
+    b = 2;
+    c = 3;
+
+    compare 5*a with b {
+        less
+            printf 1;
+        equal
+            printf 2;
+        greater
+            printf 3;
+    }
+
+    compare c+a+b with b+b+b {
+        less
+            printf 1;
+        equal
+            printf 2;
+        greater
+            printf 3;
+    }
+
+    compare b*b with b*b*b {
+        less
+            printf 1;
+        equal
+            printf 2;
+        greater
+            printf 3;
+    }
+}

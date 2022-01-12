@@ -1,0 +1,42 @@
+main
+{
+    int a, b, c;
+
+    a = 1;
+    b = 2;
+    c = 3;
+
+    compare a with b {
+        less
+            printf 1;
+            compare b with b {
+                less
+                    printf 1;
+                equal
+                    printf 2;
+                    compare c with a {
+                        less
+                            printf 1;
+                        equal
+                            printf 2;
+                        greater
+                            printf 3;
+                            a = c;
+                            compare a with c {
+                                less
+                                    printf 6;
+                                equal
+                                    printf 7;
+                                greater
+                                    printf 8;
+                            }
+                    }
+                greater
+                    printf 3;
+            }
+        equal
+            printf 2;
+        greater
+            printf 3;
+    }
+}
