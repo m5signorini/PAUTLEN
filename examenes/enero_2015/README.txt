@@ -7,7 +7,8 @@
 # EXAMEN ENERO 2015
 # Modificaciones realizadas en:
 #   - alfa.y
-#   - alfa.y
+#   - types.h
+#   - alfa.l
 #######################################
 
 
