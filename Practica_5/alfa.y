@@ -425,6 +425,7 @@ asignacion: TOK_IDENTIFICADOR TOK_ASIGNACION exp
                     asignarDestinoEnPilaINV(out, $3.es_direccion);
                     fprintf(out, ";R44:\t<asignacion> ::= <elemento_vector> = <exp>\n");
                 }
+            ;
 
 elemento_vector: TOK_IDENTIFICADOR TOK_CORCHETEIZQUIERDO exp TOK_CORCHETEDERECHO 
                     {
