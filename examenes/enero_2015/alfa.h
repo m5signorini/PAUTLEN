@@ -1,5 +1,6 @@
 
 #ifndef _ALFA_H
+#define _ALFA_H
 #include "types.h"
 
 #define ERROR_DEC_DUPLICADA             1
