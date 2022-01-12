@@ -1,0 +1,24 @@
+
+main
+{
+    array int[4] v;
+    array boolean[4] w;
+    int x;
+    boolean y;
+
+    y = true;
+    x = 5;
+
+    init v {x*2; x-2};
+    init w {true; true; y; false; true}
+
+    printf v[0];
+    printf v[1];
+    printf v[2];
+    printf v[3];
+    
+    printf w[0];
+    printf w[1];
+    printf w[2];
+    printf w[3];
+}
